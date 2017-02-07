@@ -20,4 +20,7 @@ func Init() {
 	}
 
 	dbHandle.AutoMigrate(&User{})
+	dbHandle.AutoMigrate(&Job{})
+	dbHandle.AutoMigrate(&Build{})
+	dbHandle.AutoMigrate(&Branch{})
 }
