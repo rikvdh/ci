@@ -7,7 +7,7 @@ import (
 type Build struct {
 	gorm.Model
 
-	Uri string
+	Uri string `form:"uri"`
 	DefaultBranch string
 
 	Jobs []Job

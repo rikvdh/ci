@@ -71,7 +71,7 @@ func addBuildAction(ctx *iris.Context) {
 		}
 	}
 
-	ctx.MustRender("add_build.html", iris.Map{"Page":"Add build", "build": &build, "msg": ctx.Session().GetFlashString("msg")}, iris.RenderOptions{"layout": iris.NoLayout})
+	ctx.MustRender("add_build.html", iris.Map{"Page":"Add build", "build": &build, "msg": ctx.Session().GetFlashString("msg")})
 }
 
 func homeAction(ctx *iris.Context) {
