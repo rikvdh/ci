@@ -13,7 +13,6 @@ type User struct {
 	PasswordPlain string `gorm:"-" form:"password"`
 }
 
-
 func (u *User) BeforeSave(scope *gorm.Scope) (err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.PasswordPlain), bcrypt.DefaultCost)
 	if err != nil {

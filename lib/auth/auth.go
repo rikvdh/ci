@@ -4,7 +4,7 @@ import (
 	"github.com/kataras/iris"
 )
 
-type authMiddleware struct {}
+type authMiddleware struct{}
 
 func (m authMiddleware) Serve(ctx *iris.Context) {
 	authenticated := ctx.Session().GetString("authenticated")

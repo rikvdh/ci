@@ -10,7 +10,6 @@ func Handle() *gorm.DB {
 	return dbHandle
 }
 
-
 func Migrate(db *gorm.DB) {
 	dbHandle = db
 

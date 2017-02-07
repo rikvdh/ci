@@ -4,9 +4,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
 
@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	_, err = cli.ImagePull(ctx, img + ":latest", types.ImagePullOptions{})
+	_, err = cli.ImagePull(ctx, img+":latest", types.ImagePullOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: img,
 		Cmd:   []string{"sh", "-c", "/ci/build.sh"},
-//		Cmd:   []string{"ls", "-al", "/ci", "/build"},
+		//		Cmd:   []string{"ls", "-al", "/ci", "/build"},
 	}, &container.HostConfig{
 		Binds: []string{"/tmp:/ci", "/root/build:/build"},
 	}, nil, "")
@@ -42,7 +42,7 @@ func main() {
 		panic(err)
 	}
 
-	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true,ShowStderr: true})
+	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		panic(err)
 	}

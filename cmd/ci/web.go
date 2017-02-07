@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/kataras/iris"
-	"github.com/kataras/go-template/html"
 	"github.com/kataras/go-sessions/sessiondb/file"
+	"github.com/kataras/go-template/html"
+	"github.com/kataras/iris"
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/models"
 )
@@ -26,7 +26,7 @@ func loginAction(ctx *iris.Context) {
 			}
 		}
 	}
-	ctx.MustRender("login.html", iris.Map{"user":&user,"msg":ctx.Session().GetFlashString("msg")}, iris.RenderOptions{"layout": iris.NoLayout})
+	ctx.MustRender("login.html", iris.Map{"user": &user, "msg": ctx.Session().GetFlashString("msg")}, iris.RenderOptions{"layout": iris.NoLayout})
 }
 
 func logoutAction(ctx *iris.Context) {
@@ -52,7 +52,7 @@ func startWebinterface() {
 		Layout: "layout.html",
 	})).Directory("../../templates", ".html")
 
-//	http.Use(logger.New())
+	//	http.Use(logger.New())
 	http.StaticWeb("/public", "../../public")
 
 	http.Get("/login", loginAction)
