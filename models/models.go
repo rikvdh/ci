@@ -1,7 +1,10 @@
 package models
 
 import (
+	"github.com/rikvdh/ci/lib/config"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 var dbHandle *gorm.DB
@@ -10,8 +13,11 @@ func Handle() *gorm.DB {
 	return dbHandle
 }
 
-func Migrate(db *gorm.DB) {
-	dbHandle = db
+func Init() {
+	dbHandle, err := gorm.Open(config.Get().Dbtype, config.Get().DbConnString)
+	if err != nil {
+		panic("failed to connect database")
+	}
 
-	db.AutoMigrate(&User{})
+	dbHandle.AutoMigrate(&User{})
 }
