@@ -31,7 +31,7 @@ func Load(fname string) {
 		fmt.Println("Warning loading config:", err)
 	}
 
-	cfg.Dbtype = getStringDefault(c, "database", "type", "sqlite")
+	cfg.Dbtype = getStringDefault(c, "database", "type", "sqlite3")
 	cfg.DbConnString = getStringDefault(c, "database", "connection", "ci.db")
 }
 
