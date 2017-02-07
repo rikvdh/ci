@@ -14,7 +14,8 @@ func Handle() *gorm.DB {
 }
 
 func Init() {
-	dbHandle, err := gorm.Open(config.Get().Dbtype, config.Get().DbConnString)
+	var err error
+	dbHandle, err = gorm.Open(config.Get().Dbtype, config.Get().DbConnString)
 	if err != nil {
 		panic("failed to connect database")
 	}
