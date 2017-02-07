@@ -8,6 +8,7 @@ type Job struct {
 	gorm.Model
 
 	Reference string
+	Status string
 
 	Branch   Branch
 	BranchID uint `gorm:"index"`
