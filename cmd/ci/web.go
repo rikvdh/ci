@@ -47,13 +47,13 @@ func startWebinterface() {
 	}
 
 	http := iris.New(cfg)
-	http.UseSessionDB(file.New("./tmp"))
+	http.UseSessionDB(file.New("../../tmp"))
 	http.UseTemplate(html.New(html.Config{
 		Layout: "layout.html",
-	})).Directory("./templates", ".html")
+	})).Directory("../../templates", ".html")
 
 //	http.Use(logger.New())
-	http.StaticWeb("/public", "./public")
+	http.StaticWeb("/public", "../../public")
 
 	http.Get("/login", loginAction)
 	http.Post("/login", loginAction)
