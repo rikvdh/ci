@@ -33,8 +33,30 @@
   .main.container {
     margin-top: 7em;
   }
-  </style>
 
+  .build-new, .build-busy {
+  }
+  .build-unknown {
+    background: -webkit-linear-gradient(left,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
+    background: linear-gradient(to right,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
+  }
+  .build-pass {
+    background: -webkit-linear-gradient(left,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
+    background: linear-gradient(to right,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
+  }
+  .build-fail {
+    background: -webkit-linear-gradient(left,#db4545 0,#db4545 10px,#fff 10px,#fff 100%) no-repeat;
+    background: linear-gradient(to right,#db4545 0,#db4545 10px,#fff 10px,#fff 100%) no-repeat;
+  }
+
+  .build {
+    font-size: 16px;
+    border: 1px solid #EFF0EC;
+    margin-bottom: .3rem;
+    clear: both;
+  }
+
+  </style>
 </head>
 <body>
 

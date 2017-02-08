@@ -93,7 +93,9 @@ func homeAction(ctx *iris.Context) {
 	var builds []models.Build
 
 	models.Handle().Find(&builds)
-
+	for k, _ := range builds {
+		builds[k].FetchLatestStatus()
+	}
 	ctx.MustRender("home.html", iris.Map{"Page":"Home", "Builds":builds})
 }
 

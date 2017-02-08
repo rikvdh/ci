@@ -1,20 +1,9 @@
 <h2>Builds</h2>
 
-<table class="ui celled table">
-  <thead>
-    <tr><th>Status</th>
-    <th>Repo</th>
-    <th></th>
-  </tr></thead>
-  <tbody>
 {{ range $i, $item := .Builds }}
-	<tr>
-		<td></td>
-		<td>{{ $item.Uri }}</td>
-		<td>
-			<a href="/deletebuild/{{$item.ID }}">[delete]</a>
-		</td>
-	</tr>
+	<div class="build build-{{ $item.Status }}">
+		{{ $item.Uri }}
+		<a href="/deletebuild/{{$item.ID }}">[delete]</a>
+	</div>
 {{ end }}
-  </tbody>
 </table>
