@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/models"
+	"github.com/rikvdh/ci/lib/indexer"
 )
 
 func loginAction(ctx *iris.Context) {
@@ -63,7 +64,8 @@ func addBuildAction(ctx *iris.Context) {
 			ctx.Session().SetFlash("msg", "Please fill in a repo URI")
 		} else if models.Handle().Where(build).First(&build); build.ID > 0 {
 			ctx.Session().SetFlash("msg", "Duplicate build")
-			// TODO check valid repo
+		} else if indexer.LsRemote(build.Uri) != nil {
+			ctx.Session().SetFlash("msg", "This repository is unaccessible")
 		} else {
 			ctx.Session().SetFlash("msg", "Build '"+build.Uri+"' added")
 			models.Handle().Create(&build)
