@@ -7,6 +7,7 @@ import (
 type Branch struct {
 	gorm.Model
 
+	Name string
 	LastReference string
 
 	Build   Build

@@ -1,6 +1,9 @@
 package indexer
 
 import (
+	"fmt"
+	"time"
+	"github.com/rikvdh/ci/models"
 	"srcd.works/go-git.v4"
 	"srcd.works/go-git.v4/config"
 	"srcd.works/go-git.v4/plumbing"
@@ -55,4 +58,49 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	})
 
 	return branches, nil
+}
+
+func scheduleJob(buildId, branchId uint, ref string) {
+	fmt.Println("Scheduling job for build", buildId, "on branch", branchId)
+	job := models.Job{
+		BuildID: buildId,
+		BranchID: branchId,
+		Status: "new",
+		Reference: ref,
+	}
+	models.Handle().Create(&job)
+}
+
+func checkBranch(buildId uint, branch Branch) {
+	dbBranch := models.Branch{}
+	models.Handle().Where("name = ? AND build_id = ?", branch.Name, buildId).First(&dbBranch)
+
+	if dbBranch.ID > 0 && dbBranch.LastReference != branch.Hash {
+		dbBranch.LastReference = branch.Hash
+		models.Handle().Save(&dbBranch)
+		scheduleJob(buildId, dbBranch.ID, branch.Hash)
+	} else if dbBranch.ID == 0 {
+		dbBranch.Name = branch.Name
+		dbBranch.BuildID = buildId
+		dbBranch.LastReference = branch.Hash
+		models.Handle().Create(&dbBranch)
+		scheduleJob(buildId, dbBranch.ID, branch.Hash)
+	}
+}
+
+func Run() {
+	for {
+		var builds []models.Build;
+		models.Handle().Find(&builds)
+		for _, build := range builds {
+			branches, err := RemoteBranches(build.Uri)
+			if err != nil {
+				fmt.Println("Error reading branches of", build.Uri)
+			}
+			for _, branch := range branches {
+				checkBranch(build.ID, branch)
+			}
+		}
+		time.Sleep(time.Second * 5)
+	}
 }
