@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -34,6 +35,7 @@ func startJob(job models.Job) {
 		panic(err)
 	}
 	cfg := readCfg(targetDir + "/.ci.yml")
+	fmt.Println(cfg)
 }
 
 func Run() {

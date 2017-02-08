@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"io/ioutil"
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,7 +17,7 @@ func readCfg(cfgFile string) config {
 
 	d, err := ioutil.ReadFile(cfgFile)
 	if err != nil {
-		yaml.Unmarshall(d, c)
+		yaml.Unmarshal(d, &c)
 	}
 
 	return c
