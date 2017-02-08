@@ -38,21 +38,38 @@
     background: -webkit-linear-gradient(left,#edde3f 0,#edde3f 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#edde3f 0,#edde3f 10px,#fff 10px,#fff 100%) no-repeat;
   }
+  i.icon.b-new:before, i.icon.b-busy {
+    content: "\f017";
+    color: #edde3f;
+  }
   .build-unknown {
     background: -webkit-linear-gradient(left,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
   }
+  i.icon.b-unknown:before {
+    content: "\f29c";
+    color: #CACECE;
+  }
+
   .build-passed {
     background: -webkit-linear-gradient(left,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
+  }
+  i.icon.b-passed:before {
+    content: "\f00c";
+    color: #39aa56;
   }
   .build-failed {
     background: -webkit-linear-gradient(left,#db4545 0,#db4545 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#db4545 0,#db4545 10px,#fff 10px,#fff 100%) no-repeat;
   }
+  i.icon.b-failed:before {
+    content: "\f071";
+    color: #db4545;
+  }
 
   .build {
-    font-size: 16px;
+    font-size: 20px;
     border: 1px solid #EFF0EC;
     margin-bottom: .3rem;
     clear: both;
