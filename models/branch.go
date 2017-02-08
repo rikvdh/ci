@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/ararog/timeago"
 	"github.com/jinzhu/gorm"
 )
 
@@ -16,6 +17,7 @@ type Branch struct {
 	Jobs    []Job
 
 	Status string `gorm:"-"`
+	StatusTime string `gorm:"-"`
 }
 
 func (b *Branch) FetchLatestStatus() {
@@ -25,4 +27,5 @@ func (b *Branch) FetchLatestStatus() {
 		b.Status = "unknown"
 	}
 	b.Status = j.Status
+	b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
 }

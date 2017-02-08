@@ -1,9 +1,13 @@
 <h2>Build {{ .Build.Uri }}</h2>
 
 {{ range $i, $item := .Build.Branches }}
-	<div class="build build-{{ $item.Status }}">
-		<i class="icon b-{{ $item.Status }}"></i>
-		<a href="/branch/{{ $item.ID }}">{{ $item.Name }}</a>
+	<div class="ui three column grid build build-{{ $item.Status }}">
+		<div class="eleven wide column">
+			<i class="icon b-{{ $item.Status }}"></i>
+			<a href="/branch/{{ $item.ID }}">{{ $item.Name }}</a>
+		</div>
+		<div class="five wide column">
+			{{ $item.StatusTime }}
+		</div>
 	</div>
 {{ end }}
-</table>

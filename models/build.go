@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/ararog/timeago"
 	"github.com/jinzhu/gorm"
 )
 
@@ -13,6 +14,7 @@ type Build struct {
 	Branches []Branch
 
 	Status string `gorm:"-"`
+	StatusTime string `gorm:"-"`
 }
 
 func (b *Build) FetchLatestStatus() {
@@ -22,4 +24,5 @@ func (b *Build) FetchLatestStatus() {
 		b.Status = "unknown"
 	}
 	b.Status = j.Status
+	b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
 }
