@@ -2,7 +2,7 @@
 
 {{ range $i, $item := .Builds }}
 	<div class="build build-{{ $item.Status }}">
-		{{ $item.Uri }}
+		<a href="/build/{{ $item.ID }}">{{ $item.Uri }}</a>
 		<a href="/deletebuild/{{$item.ID }}">[delete]</a>
 	</div>
 {{ end }}

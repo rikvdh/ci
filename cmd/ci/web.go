@@ -89,6 +89,23 @@ func deleteBuildAction(ctx *iris.Context) {
 	ctx.Redirect(ctx.RequestHeader("Referer"))
 }
 
+func getBuildAction(ctx *iris.Context) {
+	item := models.Build{}
+	id, err := ctx.ParamInt("id")
+	if err != nil {
+		ctx.Session().SetFlash("msg", "Invalid ID")
+		ctx.Redirect(ctx.RequestHeader("Referer"))
+		return
+	}
+	models.Handle().Where("id = ?", id).First(&item)
+	models.Handle().Model(&item).Related(&item.Branches)
+	for k, _ := range item.Branches {
+		item.Branches[k].FetchLatestStatus()
+	}
+
+	ctx.MustRender("build.html", iris.Map{"Page":"Build " + item.Uri, "Build":item})
+}
+
 func homeAction(ctx *iris.Context) {
 	var builds []models.Build
 
@@ -130,6 +147,7 @@ func startWebinterface() {
 		party.Get("/deletebuild/:id", deleteBuildAction)
 		party.Get("/addbuild", addBuildAction)
 		party.Post("/addbuild", addBuildAction)
+		party.Get("/build/:id", getBuildAction)
 	}
 
 	http.Listen(":8081")

@@ -1,0 +1,8 @@
+<h2>Build {{ .Build.Uri }}</h2>
+
+{{ range $i, $item := .Build.Branches }}
+	<div class="build build-{{ $item.Status }}">
+		<a href="/branch/{{ $item.ID }}">{{ $item.Name }}</a>
+	</div>
+{{ end }}
+</table>
