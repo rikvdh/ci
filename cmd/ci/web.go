@@ -75,7 +75,11 @@ func addBuildAction(ctx *iris.Context) {
 }
 
 func homeAction(ctx *iris.Context) {
-	ctx.MustRender("home.html", iris.Map{"Page":"Home"})
+	var builds []models.Build
+
+	models.Handle().Find(&builds)
+
+	ctx.MustRender("home.html", iris.Map{"Page":"Home", "Builds":builds})
 }
 
 func startWebinterface() {

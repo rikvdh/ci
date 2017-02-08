@@ -1,1 +1,21 @@
-Homepage :D
+<h2>Builds</h2>
+
+<table class="ui celled table">
+  <thead>
+    <tr><th>Status</th>
+    <th>Repo</th>
+    <th></th>
+  </tr></thead>
+  <tbody>
+{{ range $i, $item := .Builds }}
+	<tr>
+		<td></td>
+		<td>{{ $item.Uri }}</td>
+		<td>
+			<a href="/admin/categories/edit/{{$item.ID }}">[edit]</a>
+			<a href="/admin/categories/delete/{{$item.ID }}">[delete]</a>
+		</td>
+	</tr>
+{{ end }}
+  </tbody>
+</table>
