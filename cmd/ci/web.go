@@ -64,7 +64,7 @@ func addBuildAction(ctx *iris.Context) {
 			ctx.Session().SetFlash("msg", "Please fill in a repo URI")
 		} else if models.Handle().Where(build).First(&build); build.ID > 0 {
 			ctx.Session().SetFlash("msg", "Duplicate build")
-		} else if indexer.LsRemote(build.Uri) != nil {
+		} else if _, err := indexer.RemoteBranches(build.Uri); err != nil {
 			ctx.Session().SetFlash("msg", "This repository is unaccessible")
 		} else {
 			ctx.Session().SetFlash("msg", "Build '"+build.Uri+"' added")
@@ -74,6 +74,19 @@ func addBuildAction(ctx *iris.Context) {
 	}
 
 	ctx.MustRender("add_build.html", iris.Map{"Page":"Add build", "build": &build, "msg": ctx.Session().GetFlashString("msg")})
+}
+
+func deleteBuildAction(ctx *iris.Context) {
+	item := models.Build{};
+	id, err := ctx.ParamInt("id")
+	if err != nil {
+		ctx.Session().SetFlash("msg", "Invalid ID")
+		ctx.Redirect(ctx.RequestHeader("Referer"))
+		return
+	}
+	models.Handle().Where("id = ?", id).Delete(&item)
+	ctx.Session().SetFlash("msg", "Deleted")
+	ctx.Redirect(ctx.RequestHeader("Referer"))
 }
 
 func homeAction(ctx *iris.Context) {
@@ -112,6 +125,7 @@ func startWebinterface() {
 	party := http.Party("", auth.New())
 	{
 		party.Get("/", homeAction)
+		party.Get("/deletebuild/:id", deleteBuildAction)
 		party.Get("/addbuild", addBuildAction)
 		party.Post("/addbuild", addBuildAction)
 	}
