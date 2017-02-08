@@ -5,7 +5,7 @@ import (
 
 	"srcd.works/go-git.v4"
 	"srcd.works/go-git.v4/config"
-	//"srcd.works/go-git.v4/plumbing"
+	"srcd.works/go-git.v4/plumbing"
 	"srcd.works/go-git.v4/storage/memory"
 )
 
@@ -24,14 +24,28 @@ func LsRemote(repo string) error {
 		return err
 	}
 
-	list, err := r.Remotes()
+	rem, err := r.Remote("r")
 	if err != nil {
 		return err
 	}
 
-	for _, r := range list {
-		fmt.Println(r)
+	err = rem.Fetch(&git.FetchOptions{})
+	if err != nil {
+		return err
 	}
+
+	refs, err := r.References()
+	if err != nil {
+		return err
+	}
+
+	refs.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Type() == plumbing.HashReference {
+			fmt.Println(ref)
+		}
+		return nil
+	})
+
 	return nil
 
 /*	// Pull using the create repository
