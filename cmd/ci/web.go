@@ -106,6 +106,21 @@ func getBuildAction(ctx *iris.Context) {
 	ctx.MustRender("build.html", iris.Map{"Page":"Build " + item.Uri, "Build":item})
 }
 
+func getBranchAction(ctx *iris.Context) {
+	item := models.Branch{}
+	id, err := ctx.ParamInt("id")
+	if err != nil {
+		ctx.Session().SetFlash("msg", "Invalid ID")
+		ctx.Redirect(ctx.RequestHeader("Referer"))
+		return
+	}
+	models.Handle().Where("id = ?", id).First(&item)
+	models.Handle().Model(&item).Related(&item.Jobs)
+	models.Handle().Model(&item).Related(&item.Build)
+
+	ctx.MustRender("branch.html", iris.Map{"Page":"Branch " + item.Name + "("+item.Build.Uri+")", "Branch":item})
+}
+
 func homeAction(ctx *iris.Context) {
 	var builds []models.Build
 
@@ -148,6 +163,7 @@ func startWebinterface() {
 		party.Get("/addbuild", addBuildAction)
 		party.Post("/addbuild", addBuildAction)
 		party.Get("/build/:id", getBuildAction)
+		party.Get("/branch/:id", getBranchAction)
 	}
 
 	http.Listen(":8081")

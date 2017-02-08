@@ -1,0 +1,12 @@
+<h2>Build {{ .Branch.Name }} &raquo; {{ .Branch.Build.Uri }}</h2>
+
+{{ range $i, $item := .Branch.Jobs }}
+	<div class="ui three column grid build build-{{ $item.Status }}">
+		<div class="eleven wide column">
+			<i class="icon b-{{ $item.Status }}"></i>
+			<a href="/job/{{ $item.ID }}">{{ $item.Reference }}</a>
+		</div>
+		<div class="five wide column">
+		</div>
+	</div>
+{{ end }}
