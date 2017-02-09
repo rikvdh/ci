@@ -9,6 +9,7 @@ type Job struct {
 
 	Reference string
 	Status string
+	Container string
 
 	Branch   Branch
 	BranchID uint `gorm:"index"`
