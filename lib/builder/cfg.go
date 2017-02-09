@@ -16,7 +16,7 @@ func readCfg(cfgFile string) config {
 	}
 
 	d, err := ioutil.ReadFile(cfgFile)
-	if err != nil {
+	if err == nil {
 		yaml.Unmarshal(d, &c)
 	}
 
