@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"github.com/kataras/iris"
+	"github.com/go-iris2/iris2"
 )
 
 type authMiddleware struct{}
 
-func (m authMiddleware) Serve(ctx *iris.Context) {
+func (m authMiddleware) Serve(ctx *iris2.Context) {
 	authenticated := ctx.Session().GetString("authenticated")
 	if authenticated == "true" {
 		ctx.Next()
@@ -15,7 +15,7 @@ func (m authMiddleware) Serve(ctx *iris.Context) {
 	}
 }
 
-func New() iris.HandlerFunc {
+func New() iris2.HandlerFunc {
 	l := &authMiddleware{}
 	return l.Serve
 }
