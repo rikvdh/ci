@@ -1,17 +1,17 @@
 package builder
 
 import (
-	"testing"
-	"os"
 	"io/ioutil"
+	"os"
+	"testing"
 )
 
-var s string = `docker_image: test
+func TestConfigRead(t *testing.T) {
+	s := `docker_image: test
 script:
 - boom
 - foo`
 
-func TestConfigRead(t *testing.T) {
 	err := ioutil.WriteFile("./tmp.cfg", []byte(s), 0644)
 	if err != nil {
 		panic(err)

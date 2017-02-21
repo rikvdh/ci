@@ -2,16 +2,17 @@ package builder
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/docker/docker/client"
 	"github.com/rikvdh/ci/models"
-	"os"
-	"strconv"
 )
 
-var runningJobs int = 0
+var runningJobs int
 
 const buildDir string = "/home/rik/ci-build"
 
@@ -23,6 +24,14 @@ func randomString(strlen int) string {
 		result[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(result)
+}
+
+func GetLog(job *models.Job) string {
+	d, err := ioutil.ReadFile(buildDir + "/" + strconv.Itoa(int(job.ID)) + ".log")
+	if err != nil {
+		return ""
+	}
+	return string(d)
 }
 
 // Returns boolean true when the job is started
@@ -64,6 +73,7 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 	cli.Close()
 }
 
+// Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
 	for {
 		if runningJobs < 5 {

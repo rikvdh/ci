@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/go-iris2/iris2"
@@ -8,6 +9,7 @@ import (
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
 	"github.com/go-iris2/iris2/adaptors/view"
 	"github.com/rikvdh/ci/lib/auth"
+	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
 )
@@ -121,6 +123,24 @@ func getBranchAction(ctx *iris2.Context) {
 	ctx.MustRender("branch.html", iris2.Map{"Page": "Branch " + item.Name + "(" + item.Build.Uri + ")", "Branch": item})
 }
 
+func getJobAction(ctx *iris2.Context) {
+	item := models.Job{}
+	id, err := ctx.ParamInt("id")
+	if err != nil {
+		ctx.Session().SetFlash("msg", "Invalid ID")
+		ctx.Redirect(ctx.RequestHeader("Referer"))
+		return
+	}
+	models.Handle().Preload("Branch").Preload("Build").Where("id = ?", id).First(&item)
+
+	log := builder.GetLog(&item)
+
+	ctx.MustRender("job.html", iris2.Map{
+		"Page": "Job #" + strconv.Itoa(int(item.ID)) + "(" + item.Build.Uri + ")",
+		"Job":  item,
+		"Log":  log})
+}
+
 func homeAction(ctx *iris2.Context) {
 	var builds []models.Build
 
@@ -158,6 +178,7 @@ func startWebinterface() {
 		party.Post("/addbuild", addBuildAction)
 		party.Get("/build/:id", getBuildAction)
 		party.Get("/branch/:id", getBranchAction)
+		party.Get("/job/:id", getJobAction)
 	}
 
 	http.Listen(":8081")

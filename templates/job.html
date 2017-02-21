@@ -1,0 +1,31 @@
+<h2>Job #{{ .Job.ID }} &raquo; {{ .Job.Branch.Name }} &raquo; {{ .Job.Build.Uri }}</h2>
+
+	<div class="ui three column grid build build-{{ .Job.Status }}">
+		<div class="eleven wide column">
+			<i class="icon b-{{ .Job.Status }}"></i>
+			{{ .Job.Reference }}
+			<small>{{ .Job.Message }}</small>
+		</div>
+		<div class="five wide column">
+		</div>
+	</div>
+<div class="code-log">
+<pre><code>{{ .Log }}</code></pre>
+</div>
+
+<style>
+.code-log {
+	background-color: #222;
+	padding: 15px;
+}
+pre code {
+	overflow: auto;
+	width: 500px;
+    color: #f1f1f1;
+    font-family: Monaco,monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+	    background-color: #222;
+	}
+	</style>

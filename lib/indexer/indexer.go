@@ -20,7 +20,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	// Create a new repository
 	r, err := git.Init(memory.NewStorage(), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("git init error: %v", err)
 	}
 
 	_, err = r.CreateRemote(&config.RemoteConfig{
@@ -28,12 +28,12 @@ func RemoteBranches(repo string) ([]Branch, error) {
 		URL:  repo,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create remote error: %v", err)
 	}
 
 	rem, err := r.Remote("r")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("remote err: %v", err)
 	}
 
 	err = rem.Fetch(&git.FetchOptions{})
@@ -61,11 +61,11 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	return branches, nil
 }
 
-func scheduleJob(buildId, branchId uint, ref string) {
-	fmt.Println("Scheduling job for build", buildId, "on branch", branchId)
+func scheduleJob(buildID, branchID uint, ref string) {
+	fmt.Println("Scheduling job for build", buildID, "on branch", branchID)
 	job := models.Job{
-		BuildID:   buildId,
-		BranchID:  branchId,
+		BuildID:   buildID,
+		BranchID:  branchID,
 		Status:    models.StatusNew,
 		Reference: ref,
 	}
@@ -96,7 +96,7 @@ func Run() {
 		for _, build := range builds {
 			branches, err := RemoteBranches(build.Uri)
 			if err != nil {
-				fmt.Println("Error reading branches of", build.Uri)
+				fmt.Printf("error reading branches from %s: %v", build.Uri, err)
 			}
 			for _, branch := range branches {
 				checkBranch(build.ID, branch)
