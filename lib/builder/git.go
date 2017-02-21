@@ -1,28 +1,31 @@
 package builder
 
 import (
-	"fmt"
 	"code.gitea.io/git"
+	"fmt"
+	"os"
 )
 
-func cloneRepo(uri, branch, reference, dir string) error {
-	fmt.Println("Cloning", uri,"(", reference,")")
+func cloneRepo(f *os.File, uri, branch, reference, dir string) error {
+	fmt.Fprintf(f, "Cloning %s, branch %s...\n", uri, branch)
 
 	err := git.Clone(uri, dir, git.CloneRepoOptions{
-		Bare: false,
+		Bare:   false,
 		Branch: branch,
-		Quiet: true,
+		Quiet:  true,
 	})
+	fmt.Fprintf(f, "done\n")
 
 	if err != nil {
-		return err
+		return fmt.Errorf("git clone failed: %v", err)
 	}
 
+	fmt.Fprintf(f, "checkout reference: %s\n", reference)
 	err = git.Checkout(dir, git.CheckoutOptions{Branch: reference})
-
 	if err != nil {
 		return err
 	}
+	fmt.Fprintf(f, "done\n")
 
 	return nil
 }

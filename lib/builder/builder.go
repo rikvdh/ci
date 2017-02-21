@@ -5,8 +5,13 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/docker/docker/client"
 	"github.com/rikvdh/ci/models"
+	"os"
+	"strconv"
 )
+
+var runningJobs int = 0
 
 const buildDir string = "/home/rik/ci-build"
 
@@ -20,36 +25,71 @@ func randomString(strlen int) string {
 	return string(result)
 }
 
-func startJob(job models.Job) {
+// Returns boolean true when the job is started
+func startJob(f *os.File, cli *client.Client, job models.Job) bool {
 	targetDir := buildDir + "/" + randomString(16)
-	err := cloneRepo(job.Build.Uri, job.Branch.Name, job.Reference, targetDir)
-	if err != nil {
+
+	fmt.Fprintf(f, "starting build job %d\n", job.ID)
+
+	if err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, targetDir); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
-		return
+		return false
 	}
 
+	fmt.Fprintf(f, "reading configuration\n")
 	cfg := readCfg(targetDir + "/.ci.yml")
-	containerID, err := startContainer(&cfg, targetDir)
+
+	if err := fetchImage(f, cli, &cfg); err != nil {
+		job.SetStatus(models.StatusError, fmt.Sprintf("fetch image failed: %v", err))
+	}
+
+	fmt.Fprintf(f, "starting container...\n")
+	containerID, err := startContainer(cli, &cfg, targetDir)
 	if err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("starting container failed: %v", err))
-		return
+		return false
 	}
+	fmt.Fprintf(f, "container started, ID: %s\n", containerID)
+
 	job.Container = containerID
 	job.SetStatus(models.StatusBusy)
+	return true
+}
 
-	waitContainer(containerID)
-	stopContainer(containerID)
+func waitForJob(f *os.File, cli *client.Client, job models.Job) {
+	models.Handle().First(&job, job.ID)
+	readContainer(f, cli, job.Container)
+	job.SetStatus(models.StatusPassed)
+	runningJobs--
+	cli.Close()
 }
 
 func Run() {
-	var newJobs []models.Job
-	initCtx()
 	for {
-		time.Sleep(time.Second * 10)
+		if runningJobs < 5 {
+			var job models.Job
 
-		models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusNew).Find(&newJobs)
-		for _, job := range newJobs {
-			startJob(job)
+			models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusNew).First(&job)
+			if job.ID > 0 {
+				cli := getClient()
+
+				f, err := os.OpenFile(buildDir+"/"+strconv.Itoa(int(job.ID))+".log", os.O_CREATE|os.O_WRONLY, 0644)
+				if err != nil {
+					job.SetStatus(models.StatusError, fmt.Sprintf("creating logfile failed: %v", err))
+					continue
+				}
+				defer f.Close()
+
+				started := startJob(f, cli, job)
+				if started {
+					go waitForJob(f, cli, job)
+					runningJobs++
+				}
+			} else {
+				time.Sleep(time.Second * 5)
+			}
+		} else {
+			time.Sleep(time.Second * 5)
 		}
 	}
 }
