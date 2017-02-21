@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -24,9 +25,25 @@ func initCtx() {
 }
 
 func startContainer(cfg *config, path string) (string, error) {
+
+	fmt.Println(cfg)
+
+	buildFile := "build-" + randomString(10) + ".sh"
+
+	f, err := os.Create("/tmp/" + buildFile)
+	if err != nil {
+		return "", err
+	}
+	f.Chmod(0755)
+	f.WriteString("#!/bin/sh\ncd /build\nset -xe\n")
+	for _, s := range cfg.Script {
+		f.WriteString(s + "\n")
+	}
+	f.Close()
+
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: cfg.DockerImage,
-		Cmd:   []string{"sh", "-c", "/ci/build.sh"},
+		Cmd:   []string{"sh", "-c", "/ci/" + buildFile},
 	}, &container.HostConfig{
 		Binds: []string{"/tmp:/ci", path + ":/build"},
 	}, nil, "")
