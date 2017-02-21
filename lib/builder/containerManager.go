@@ -4,14 +4,14 @@ import (
 	"io"
 	"os"
 
-	"golang.org/x/net/context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"golang.org/x/net/context"
 )
 
-var cli *client.Client;
-var ctx context.Context;
+var cli *client.Client
+var ctx context.Context
 
 func initCtx() {
 	var err error
@@ -23,7 +23,7 @@ func initCtx() {
 
 }
 
-func startContainer(cfg *config, path string) (string,error) {
+func startContainer(cfg *config, path string) (string, error) {
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: cfg.DockerImage,
 		Cmd:   []string{"sh", "-c", "/ci/build.sh"},

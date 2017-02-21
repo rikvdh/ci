@@ -3,6 +3,7 @@ package indexer
 import (
 	"fmt"
 	"time"
+
 	"github.com/rikvdh/ci/models"
 	"srcd.works/go-git.v4"
 	"srcd.works/go-git.v4/config"
@@ -63,9 +64,9 @@ func RemoteBranches(repo string) ([]Branch, error) {
 func scheduleJob(buildId, branchId uint, ref string) {
 	fmt.Println("Scheduling job for build", buildId, "on branch", branchId)
 	job := models.Job{
-		BuildID: buildId,
-		BranchID: branchId,
-		Status: "new",
+		BuildID:   buildId,
+		BranchID:  branchId,
+		Status:    models.StatusNew,
 		Reference: ref,
 	}
 	models.Handle().Create(&job)
@@ -90,7 +91,7 @@ func checkBranch(buildId uint, branch Branch) {
 
 func Run() {
 	for {
-		var builds []models.Build;
+		var builds []models.Build
 		models.Handle().Find(&builds)
 		for _, build := range builds {
 			branches, err := RemoteBranches(build.Uri)

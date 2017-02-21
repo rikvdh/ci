@@ -116,9 +116,7 @@ func getBranchAction(ctx *iris2.Context) {
 		ctx.Redirect(ctx.RequestHeader("Referer"))
 		return
 	}
-	models.Handle().Where("id = ?", id).First(&item)
-	models.Handle().Model(&item).Related(&item.Jobs)
-	models.Handle().Model(&item).Related(&item.Build)
+	models.Handle().Preload("Jobs").Preload("Build").Where("id = ?", id).First(&item)
 
 	ctx.MustRender("branch.html", iris2.Map{"Page": "Branch " + item.Name + "(" + item.Build.Uri + ")", "Branch": item})
 }
@@ -138,7 +136,7 @@ func startWebinterface() {
 	http.Adapt(sessions.New(sessions.Config{
 		Cookie:         "ci-session-id",
 		Expires:        2 * time.Hour,
-		SessionStorage: file.New("../../tmp"),
+		SessionStorage: file.New("./tmp"),
 	}))
 	http.Adapt(view.HTML("./templates", ".html"))
 	http.Layout("layout.html")
