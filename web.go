@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
@@ -8,7 +10,6 @@ import (
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
-	"time"
 )
 
 func loginAction(ctx *iris2.Context) {
@@ -139,9 +140,9 @@ func startWebinterface() {
 		Expires:        2 * time.Hour,
 		SessionStorage: file.New("../../tmp"),
 	}))
-	http.Adapt(view.HTML("../../templates", ".html"))
+	http.Adapt(view.HTML("./templates", ".html"))
 	http.Layout("layout.html")
-	http.StaticWeb("/public", "../../public")
+	http.StaticWeb("/public", "./public")
 
 	http.Get("/login", loginAction)
 	http.Post("/login", loginAction)
