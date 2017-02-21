@@ -1,8 +1,9 @@
 package builder
 
 import (
-	"time"
+	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/rikvdh/ci/models"
 )
@@ -20,23 +21,24 @@ func randomString(strlen int) string {
 }
 
 func startJob(job models.Job) {
-	models.Handle().Model(&job).Related(&job.Build)
-	models.Handle().Model(&job).Related(&job.Branch)
 	targetDir := buildDir + "/" + randomString(16)
 	err := cloneRepo(job.Build.Uri, job.Branch.Name, job.Reference, targetDir)
 	if err != nil {
-		panic(err)
+		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
+		return
 	}
+
 	cfg := readCfg(targetDir + "/.ci.yml")
-	containerId, err := startContainer(&cfg, targetDir)
+	containerID, err := startContainer(&cfg, targetDir)
 	if err != nil {
-		panic(err)
+		job.SetStatus(models.StatusError, fmt.Sprintf("starting container failed: %v", err))
+		return
 	}
-	job.Container = containerId
-	job.Status = "busy"
-	models.Handle().Save(&job)
-	waitContainer(containerId)
-	stopContainer(containerId)
+	job.Container = containerID
+	job.SetStatus(models.StatusBusy)
+
+	waitContainer(containerID)
+	stopContainer(containerID)
 }
 
 func Run() {
@@ -45,7 +47,7 @@ func Run() {
 	for {
 		time.Sleep(time.Second * 10)
 
-		models.Handle().Where("status = ?", "new").Find(&newJobs)
+		models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusNew).Find(&newJobs)
 		for _, job := range newJobs {
 			startJob(job)
 		}
