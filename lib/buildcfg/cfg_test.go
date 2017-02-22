@@ -12,14 +12,14 @@ script:
 - boom
 - foo`
 
-	err := ioutil.WriteFile("./tmp.cfg", []byte(s), 0644)
+	err := ioutil.WriteFile(".ci.yml", []byte(s), 0644)
 	if err != nil {
 		panic(err)
 	}
 
-	defer os.Remove("./tmp.cfg")
+	defer os.Remove(".ci.yml")
 
-	cfg := Read("./tmp.cfg")
+	cfg := Read(".", "boembats")
 
 	if cfg.DockerImage != "test" {
 		t.Error("Expected docker-image to be test")
@@ -33,7 +33,7 @@ script:
 }
 
 func TestDefault(t *testing.T) {
-	cfg := readCfg("/non/existing/file")
+	cfg := Read("/non/existing/file", "bots")
 
 	if cfg.DockerImage != "debian" {
 		t.Error("Expected docker-image to be debian")
