@@ -1,4 +1,4 @@
-package builder
+package buildcfg
 
 import (
 	"io/ioutil"
@@ -19,7 +19,7 @@ script:
 
 	defer os.Remove("./tmp.cfg")
 
-	cfg := readCfg("./tmp.cfg")
+	cfg := Read("./tmp.cfg")
 
 	if cfg.DockerImage != "test" {
 		t.Error("Expected docker-image to be test")

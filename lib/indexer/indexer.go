@@ -96,7 +96,7 @@ func Run() {
 		for _, build := range builds {
 			branches, err := RemoteBranches(build.Uri)
 			if err != nil {
-				fmt.Printf("error reading branches from %s: %v", build.Uri, err)
+				fmt.Printf("error reading branches from %s: %v\n", build.Uri, err)
 			}
 			for _, branch := range branches {
 				checkBranch(build.ID, branch)

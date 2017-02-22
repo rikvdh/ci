@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/client"
+	"github.com/rikvdh/ci/lib/buildcfg"
 	"github.com/rikvdh/ci/models"
 )
 
@@ -46,7 +47,7 @@ func startJob(f *os.File, cli *client.Client, job models.Job) bool {
 	}
 
 	fmt.Fprintf(f, "reading configuration\n")
-	cfg := readCfg(targetDir + "/.ci.yml")
+	cfg := buildcfg.Read(targetDir, job.Build.Uri)
 
 	if err := fetchImage(f, cli, &cfg); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("fetch image failed: %v", err))

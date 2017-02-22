@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/rikvdh/ci/lib/buildcfg"
 	"golang.org/x/net/context"
 )
 
@@ -22,7 +23,7 @@ func getClient() *client.Client {
 	return cli
 }
 
-func fetchImage(f *os.File, cli *client.Client, cfg *config) error {
+func fetchImage(f *os.File, cli *client.Client, cfg *buildcfg.Config) error {
 	fmt.Fprintf(f, "fetching docker image: %s\n", cfg.DockerImage)
 	rc, err := cli.ImagePull(ctx, cfg.DockerImage, types.ImagePullOptions{})
 	if err != nil {
@@ -38,26 +39,15 @@ func fetchImage(f *os.File, cli *client.Client, cfg *config) error {
 	return nil
 }
 
-func startContainer(cli *client.Client, cfg *config, path string) (string, error) {
+func startContainer(cli *client.Client, cfg *buildcfg.Config, path string) (string, error) {
 	buildFile := "build-" + randomString(10) + ".sh"
 
-	f, err := os.Create("/tmp/" + buildFile)
+	f, err := os.OpenFile("/tmp/"+buildFile, os.O_CREATE|os.O_WRONLY, 0755)
 	if err != nil {
 		return "", err
 	}
-	f.Chmod(0755)
-	f.WriteString(`#!/bin/sh
-cd /build
-set -xe
-echo "$(date) Build started"
-sleep 5
-
-`)
-	for _, s := range cfg.Script {
-		f.WriteString(s + "\n")
-	}
-	f.WriteString("\necho \"$(date) Build ended\"\n")
-	f.Close()
+	defer f.Close()
+	cfg.GetScript(f)
 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: cfg.DockerImage,
