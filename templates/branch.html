@@ -4,10 +4,11 @@
 	<div class="ui three column grid build build-{{ $item.Status }}">
 		<div class="eleven wide column">
 			<i class="icon b-{{ $item.Status }}"></i>
-			<a href="/job/{{ $item.ID }}">{{ $item.Reference }}</a>
+			<a href="/job/{{ $item.ID }}">{{ $item.Reference }}</a><br />
 			<small>{{ $item.Message }}</small>
 		</div>
 		<div class="five wide column">
+			{{ $item.StatusTime }}
 		</div>
 	</div>
 {{ end }}

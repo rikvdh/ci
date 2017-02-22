@@ -51,9 +51,11 @@ func loadLangConfig(language, remote string, c *Config) {
 		importPath := u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
 
 		setup := []string{
+			"umask 0000",
 			"apt-get update",
-			"apt-get install -y --force-yes rsync",
+			"apt-get install -y --force-yes rsync sudo",
 			"export GOPATH=/build",
+			"export PATH=$PATH:/build/bin",
 			"mkdir /tmp/dat",
 			"rsync -az . /tmp/dat",
 			"rm -rf *",
@@ -64,6 +66,12 @@ func loadLangConfig(language, remote string, c *Config) {
 		}
 
 		c.Setup = append(setup, c.Setup...)
+		if len(c.Script) == 0 && len(c.Install) == 0 {
+			c.Script = []string{
+				"go get -t -v ./...",
+				"go test -v ./...",
+			}
+		}
 		c.DockerImage = "golang"
 	}
 }

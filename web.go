@@ -119,6 +119,9 @@ func getBranchAction(ctx *iris2.Context) {
 		return
 	}
 	models.Handle().Preload("Jobs").Preload("Build").Where("id = ?", id).First(&item)
+	for k := range item.Jobs {
+		item.Jobs[k].SetStatusTime()
+	}
 
 	ctx.MustRender("branch.html", iris2.Map{"Page": "Branch " + item.Name + "(" + item.Build.Uri + ")", "Branch": item})
 }

@@ -49,7 +49,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	var branches []Branch
 
 	refs.ForEach(func(ref *plumbing.Reference) error {
-		if ref.Type() == plumbing.HashReference {
+		if ref.Type() == plumbing.HashReference && !ref.IsTag() {
 			branches = append(branches, Branch{
 				Hash: ref.Hash().String(),
 				Name: ref.Name().Short(),
