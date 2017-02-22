@@ -1,14 +1,15 @@
 package models
 
 import (
-	"github.com/rikvdh/ci/lib/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/rikvdh/ci/lib/config"
 )
 
 var dbHandle *gorm.DB
 
+// Handle returns the database interface handle, it is a singleton
 func Handle() *gorm.DB {
 	return dbHandle
 }
