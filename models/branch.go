@@ -8,15 +8,15 @@ import (
 type Branch struct {
 	gorm.Model
 
-	Name string
+	Name          string
 	LastReference string
 
 	Build   Build
 	BuildID uint `gorm:"index"`
 
-	Jobs    []Job
+	Jobs []Job
 
-	Status string `gorm:"-"`
+	Status     string `gorm:"-"`
 	StatusTime string `gorm:"-"`
 }
 
@@ -27,5 +27,9 @@ func (b *Branch) FetchLatestStatus() {
 		b.Status = "unknown"
 	}
 	b.Status = j.Status
-	b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
+	if j.UpdatedAt.IsZero() {
+		b.StatusTime = "n/a"
+	} else {
+		b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
+	}
 }

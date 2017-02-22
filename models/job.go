@@ -1,7 +1,9 @@
 package models
 
 import (
+	"github.com/ararog/timeago"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Job struct {
@@ -11,12 +13,16 @@ type Job struct {
 	Status    string
 	Container string
 	Message   string
+	Start     time.Time
+	End       time.Time
 
 	Branch   Branch
 	BranchID uint `gorm:"index"`
 
 	Build   Build
 	BuildID uint `gorm:"index"`
+
+	StatusTime string `gorm:"-"`
 }
 
 const (
@@ -27,8 +33,23 @@ const (
 	StatusError  = "error"
 )
 
+func (j *Job) SetStatusTime() {
+	if j.Start.IsZero() {
+		j.StatusTime = "not started"
+	} else if j.End.IsZero() {
+		j.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.Start)
+	} else {
+		j.StatusTime = j.End.Sub(j.Start).String()
+	}
+}
+
 func (j *Job) SetStatus(status string, message ...string) error {
 	j.Status = status
+
+	// Error, failed and passed are final statusses, add the end-time
+	if status == StatusError || status == StatusFailed || status == StatusPassed {
+		j.End = time.Now()
+	}
 	if len(message) == 1 {
 		j.Message = message[0]
 	}

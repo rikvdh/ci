@@ -67,18 +67,26 @@ func startContainer(cli *client.Client, cfg *buildcfg.Config, path string) (stri
 	return resp.ID, nil
 }
 
-func readContainer(f *os.File, cli *client.Client, id string) {
+func readContainer(f *os.File, cli *client.Client, id string) (int, error) {
 	out, err := cli.ContainerAttach(ctx, id, types.ContainerAttachOptions{Stdout: true, Stderr: true, Stream: true, Logs: true})
 	if err != nil {
-		panic(err)
+		return 0, fmt.Errorf("container attach: %v", err)
 	}
 
 	stdcopy.StdCopy(f, f, out.Reader)
 	out.Close()
 
+	cnt, err := cli.ContainerInspect(ctx, id)
+	if err != nil {
+		return 0, fmt.Errorf("inspect error: %v", err)
+	}
+	exitcode := cnt.State.ExitCode
+	fmt.Fprintf(f, "exitcode: %d\n", exitcode)
+
 	fmt.Fprintf(f, "removing container: %s\n", id)
 	err = cli.ContainerRemove(ctx, id, types.ContainerRemoveOptions{})
 	if err != nil {
-		panic(err)
+		return exitcode, fmt.Errorf("container remove: %v", err)
 	}
+	return exitcode, nil
 }

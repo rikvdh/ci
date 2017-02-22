@@ -31,8 +31,7 @@ func cloneRepo(f *os.File, uri, branch, reference, dir string) error {
 		fmt.Fprintf(f, "update submodules... ")
 		cmd := git.NewCommand("submodule")
 		cmd.AddArguments("update", "--init", "--recursive")
-		ret, err := cmd.RunInDir(dir)
-		fmt.Print("submodule shit: " + ret)
+		_, err := cmd.RunInDir(dir)
 		if err != nil {
 			return err
 		}

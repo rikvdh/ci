@@ -101,8 +101,8 @@ func getBuildAction(ctx *iris2.Context) {
 		ctx.Redirect(ctx.RequestHeader("Referer"))
 		return
 	}
-	models.Handle().Where("id = ?", id).First(&item)
-	models.Handle().Model(&item).Related(&item.Branches)
+	models.Handle().Preload("Branches").Where("id = ?", id).First(&item)
+
 	for k := range item.Branches {
 		item.Branches[k].FetchLatestStatus()
 	}
@@ -132,6 +132,8 @@ func getJobAction(ctx *iris2.Context) {
 		return
 	}
 	models.Handle().Preload("Branch").Preload("Build").Where("id = ?", id).First(&item)
+
+	item.SetStatusTime()
 
 	log := builder.GetLog(&item)
 

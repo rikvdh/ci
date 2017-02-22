@@ -40,6 +40,7 @@ func startJob(f *os.File, cli *client.Client, job models.Job) bool {
 	targetDir := buildDir + "/" + randomString(16)
 
 	fmt.Fprintf(f, "starting build job %d\n", job.ID)
+	job.Start = time.Now()
 
 	if err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, targetDir); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
@@ -68,8 +69,14 @@ func startJob(f *os.File, cli *client.Client, job models.Job) bool {
 
 func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 	models.Handle().First(&job, job.ID)
-	readContainer(f, cli, job.Container)
-	job.SetStatus(models.StatusPassed)
+	code, err := readContainer(f, cli, job.Container)
+	if err != nil {
+		job.SetStatus(models.StatusError, err.Error())
+	} else if code != 0 {
+		job.SetStatus(models.StatusFailed, fmt.Sprintf("build failed with code: %d", code))
+	} else {
+		job.SetStatus(models.StatusPassed)
+	}
 	runningJobs--
 	cli.Close()
 }
