@@ -15,8 +15,7 @@ import (
 )
 
 var runningJobs uint
-
-const buildDir string = "/home/rik/ci-build"
+var buildDir string
 
 func randomString(strlen int) string {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -28,6 +27,7 @@ func randomString(strlen int) string {
 	return string(result)
 }
 
+// GetLog retrieves a log for a job
 func GetLog(job *models.Job) string {
 	d, err := ioutil.ReadFile(buildDir + "/" + strconv.Itoa(int(job.ID)) + ".log")
 	if err != nil {
@@ -84,6 +84,11 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 
 // Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
+	buildDir = config.Get().BuildDir
+	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
+		os.Mkdir(buildDir, 755)
+	}
+
 	for {
 		if runningJobs < config.Get().ConcurrentBuilds {
 			var job models.Job

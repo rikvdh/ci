@@ -45,6 +45,7 @@ connection = ci.db
 
 [build]
 parallel = 5
+work_dir = ./ci-build
 
 [http]
 listen_uri = :8081

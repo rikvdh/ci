@@ -11,6 +11,7 @@ type Config struct {
 	Dbtype           string
 	DbConnString     string
 	ConcurrentBuilds uint
+	BuildDir         string
 	ListeningURI     string
 }
 
@@ -52,6 +53,7 @@ func Load(fname string) {
 	cfg.Dbtype = getStringDefault(c, "database", "type", "sqlite3")
 	cfg.DbConnString = getStringDefault(c, "database", "connection", "ci.db")
 	cfg.ConcurrentBuilds = getUintDefault(c, "build", "parallel", 5)
+	cfg.BuildDir = getStringDefault(c, "build", "work_dir", "./ci-build")
 	cfg.ListeningURI = getStringDefault(c, "http", "listen_uri", ":8081")
 }
 
