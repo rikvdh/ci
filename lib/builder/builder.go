@@ -12,6 +12,7 @@ import (
 	"github.com/rikvdh/ci/lib/buildcfg"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
+	"path/filepath"
 )
 
 var runningJobs uint
@@ -84,7 +85,7 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 
 // Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
-	buildDir = config.Get().BuildDir
+	buildDir, _ = filepath.Abs(config.Get().BuildDir)
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
 		os.Mkdir(buildDir, 0755)
 	}
