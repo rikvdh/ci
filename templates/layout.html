@@ -8,20 +8,8 @@
 
   <title>CI - {{ .Page }}</title>
 
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/reset.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/site.min.css">
-
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/container.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/grid.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/header.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/image.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/menu.min.css">
-
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/divider.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/list.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/segment.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/dropdown.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/semantic/components/icon.min.css">
+  <link rel="stylesheet" type="text/css" href="/public/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="/public/prism.css">
 
   <style type="text/css">
   body {
@@ -38,33 +26,37 @@
     background: -webkit-linear-gradient(left,#edde3f 0,#edde3f 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#edde3f 0,#edde3f 10px,#fff 10px,#fff 100%) no-repeat;
   }
-  i.icon.b-new:before, i.icon.b-busy {
-    content: "\f017";
+  span.glyphicon-new:before, span.glyphicon-busy:before {
+    content: "\e023";
     color: #edde3f;
   }
   .build-unknown {
     background: -webkit-linear-gradient(left,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
   }
-  i.icon.b-unknown:before {
-    content: "\f29c";
-    color: #CACECE;
+  span.glyphicon-unknown:before {
+    content: "\e085";
+    color: #000;
   }
 
   .build-passed {
     background: -webkit-linear-gradient(left,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
   }
-  i.icon.b-passed:before {
-    content: "\f00c";
+  span.glyphicon-passed:before {
+    content: "\e013";
     color: #39aa56;
   }
   .build-failed, .build-error {
     background: -webkit-linear-gradient(left,#db4545 0,#db4545 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#db4545 0,#db4545 10px,#fff 10px,#fff 100%) no-repeat;
   }
-  i.icon.b-failed:before, i.icon.b-error:before{
-    content: "\f071";
+  span.glyphicon-failed:before{
+    content: "\e014";
+    color: #db4545;
+  }
+  span.glyphicon-error:before{
+    content: "\e101";
     color: #db4545;
   }
 
@@ -77,23 +69,39 @@
     padding-left: 20px;
   }
 
+  body {
+    padding-top: 50px;
+  }
   </style>
 </head>
 <body>
 
-  <div class="ui fixed inverted menu">
-    <div class="ui container">
-      <a href="/" class="header item">
-        CI
-      </a>
-      <a href="/addbuild" class="item">Add build</a>
-      <a href="/logout" class="item">Logout</a>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">CI</a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="/">Home</a></li>
+        <li><a href="/addbuild">Add build</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
     </div>
   </div>
+</nav>
 
-  <div class="ui main text container">
-    {{ yield }}
-  </div>
+<div class="container">
+  {{ yield }}
+</div>
+
+<script src="/public/prism.js"></script>
 </body>
 
 </html>

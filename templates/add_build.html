@@ -1,19 +1,11 @@
-    <h2 class="ui teal image header">
-      <div class="content">
-	Add a build
-      </div>
-    </h2>
-    <form class="ui large form error" method="post">
-      <div class="ui stacked segment">
-        <div class="field">
-          <div class="ui left icon input">
-            <i class="user icon"></i>
-            <input type="text" name="uri" placeholder="Repository URI" value="{{ .build.Uri }}">
-          </div>
-        </div>
-        <input type="submit" value="Submit" class="ui fluid large teal submit button" />
-      </div>
+<h2>Add a build</h2>
 
-      <div class="ui error message">{{ .msg }}</div>
+<form method="post">
+        <div class="alert alert-info">{{ .msg }}</div>
 
-    </form>
+  <div class="form-group">
+    <label for="uri">Repository URI</label>
+    <input type="text" name="uri" class="form-control" placeholder="Repository URI" value="{{ .build.Uri }}">
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
