@@ -86,7 +86,7 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 func Run() {
 	buildDir = config.Get().BuildDir
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
-		os.Mkdir(buildDir, 755)
+		os.Mkdir(buildDir, 0755)
 	}
 
 	for {
