@@ -53,7 +53,7 @@ set -xe
 func loadCConfig(remote string, c *Config) {
 	setup := []string{
 		"apt-get update",
-		"apt-get install -y --force-yes sudo build-essential cmake",
+		"apt-get install -y --force-yes sudo build-essential cmake libssl-dev",
 	}
 	c.Setup.V = append(setup, c.Setup.V...)
 	c.DockerImage = "debian"
