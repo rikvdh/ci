@@ -74,6 +74,7 @@ func addBuildAction(ctx *iris2.Context) {
 			ctx.Session().SetFlash("msg", "This repository is unaccessible")
 		} else {
 			ctx.Session().SetFlash("msg", "Build '"+build.Uri+"' added")
+			build.Status = models.StatusUnknown
 			models.Handle().Create(&build)
 			build = models.Build{}
 		}
