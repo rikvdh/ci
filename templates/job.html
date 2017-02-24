@@ -1,4 +1,4 @@
-<h2>Job #{{ .Job.ID }} &raquo; {{ .Job.Branch.Name }} &raquo; {{ .Job.Build.Uri }}</h2>
+<h2><a href="/build/{{ .Job.Build.ID }}">{{ .Job.Build.Uri }}</a> &raquo; <a href="/branch/{{ .Job.Branch.ID }}">{{ .Job.Branch.Name }}</a> &raquo; Job #{{ .Job.ID }}</h2>
 
 	<div class="ui three column grid build build-{{ .Job.Status }}">
 		<div class="eleven wide column">

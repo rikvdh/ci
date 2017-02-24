@@ -8,6 +8,7 @@ import (
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
 	"github.com/go-iris2/iris2/adaptors/view"
+	"github.com/jinzhu/gorm"
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/indexer"
@@ -84,21 +85,19 @@ func deleteBuildAction(ctx *iris2.Context) {
 	item := models.Build{}
 	id, err := ctx.ParamInt("id")
 	if err != nil {
-		ctx.Session().SetFlash("msg", "Invalid ID")
-		ctx.Redirect(ctx.RequestHeader("Referer"))
+		ctx.Redirect(ctx.Referer())
 		return
 	}
 	models.Handle().Where("id = ?", id).Delete(&item)
 	ctx.Session().SetFlash("msg", "Deleted")
-	ctx.Redirect(ctx.RequestHeader("Referer"))
+	ctx.Redirect(ctx.Referer())
 }
 
 func getBuildAction(ctx *iris2.Context) {
 	item := models.Build{}
 	id, err := ctx.ParamInt("id")
 	if err != nil {
-		ctx.Session().SetFlash("msg", "Invalid ID")
-		ctx.Redirect(ctx.RequestHeader("Referer"))
+		ctx.Redirect(ctx.Referer())
 		return
 	}
 	models.Handle().Preload("Branches").Where("id = ?", id).First(&item)
@@ -110,15 +109,29 @@ func getBuildAction(ctx *iris2.Context) {
 	ctx.MustRender("build.html", iris2.Map{"Page": "Build " + item.Uri, "Build": item})
 }
 
+func buildBranchAction(ctx *iris2.Context) {
+	item := models.Branch{}
+	id, err := ctx.ParamInt("id")
+	if err != nil {
+		ctx.Redirect(ctx.Referer())
+		return
+	}
+
+	models.Handle().Preload("Jobs").Preload("Build").Where("id = ?", id).First(&item)
+	indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
+	ctx.Redirect(ctx.Referer())
+}
+
 func getBranchAction(ctx *iris2.Context) {
 	item := models.Branch{}
 	id, err := ctx.ParamInt("id")
 	if err != nil {
-		ctx.Session().SetFlash("msg", "Invalid ID")
-		ctx.Redirect(ctx.RequestHeader("Referer"))
+		ctx.Redirect(ctx.Referer())
 		return
 	}
-	models.Handle().Preload("Jobs").Preload("Build").Where("id = ?", id).First(&item)
+	models.Handle().Preload("Jobs", func(db *gorm.DB) *gorm.DB {
+		return db.Order("jobs.id DESC")
+	}).Preload("Build").Where("id = ?", id).First(&item)
 	for k := range item.Jobs {
 		item.Jobs[k].SetStatusTime()
 	}
@@ -131,7 +144,7 @@ func getJobAction(ctx *iris2.Context) {
 	id, err := ctx.ParamInt("id")
 	if err != nil {
 		ctx.Session().SetFlash("msg", "Invalid ID")
-		ctx.Redirect(ctx.RequestHeader("Referer"))
+		ctx.Redirect(ctx.Referer())
 		return
 	}
 	models.Handle().Preload("Branch").Preload("Build").Where("id = ?", id).First(&item)
@@ -182,6 +195,7 @@ func startWebinterface() {
 		party.Get("/addbuild", addBuildAction)
 		party.Post("/addbuild", addBuildAction)
 		party.Get("/build/:id", getBuildAction)
+		party.Get("/buildbranch/:id", buildBranchAction)
 		party.Get("/branch/:id", getBranchAction)
 		party.Get("/job/:id", getJobAction)
 	}

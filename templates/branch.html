@@ -1,4 +1,4 @@
-<h2>Build {{ .Branch.Name }} &raquo; {{ .Branch.Build.Uri }}</h2>
+<h2>Build <a href="/build/{{ .Branch.Build.ID }}">{{ .Branch.Build.Uri }}</a> &raquo; {{ .Branch.Name }}</h2>
 
 {{ range $i, $item := .Branch.Jobs }}
 	<div class="ui three column grid build build-{{ $item.Status }}">
