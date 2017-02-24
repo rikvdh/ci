@@ -1,3 +1,4 @@
 ci
 tmp/*
 *.db
+ci-build
