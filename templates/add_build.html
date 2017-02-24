@@ -1,8 +1,9 @@
 <h2>Add a build</h2>
 
 <form method="post">
-        <div class="alert alert-info">{{ .msg }}</div>
-
+  {{ if .msg }}
+    <div class="alert alert-info">{{ .msg }}</div>
+  {{ end }}
   <div class="form-group">
     <label for="uri">Repository URI</label>
     <input type="text" name="uri" class="form-control" placeholder="Repository URI" value="{{ .build.Uri }}">
