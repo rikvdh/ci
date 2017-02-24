@@ -1,18 +1,22 @@
+// Package buildcfg is a Travis-CI compatible configuration reader
+// It reads a configuration from .ci.yml or .travis.yml, it also
+// selects a suitable docker image
 package buildcfg
 
 import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-
-	"gopkg.in/yaml.v2"
 	"os"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 const filename = ".ci.yml"
 const travisconfig = ".travis.yml"
 
+// Config is the travis-compatible structure
 type Config struct {
 	DockerImage string `yaml:"docker_image"`
 	Language    string
@@ -27,6 +31,7 @@ type Config struct {
 	Script        multiString
 }
 
+// GetScript returns the build script for building the project
 func (c *Config) GetScript(f *os.File) {
 	f.WriteString(`#!/bin/sh
 cd /build
@@ -63,6 +68,7 @@ func loadGoConfig(remote string, c *Config) {
 	u, _ := url.Parse(remote)
 	importPath := u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
 
+	// Most part of this just moves everything from builddir to the correct go-import-path
 	setup := []string{
 		"apt-get update",
 		"apt-get install -y --force-yes rsync sudo",
@@ -98,6 +104,8 @@ func loadLangConfig(language, remote string, c *Config) {
 	}
 }
 
+// Read build configuration, it need the root-directory for a repository
+// and remote URL, some languages use this.
 func Read(cfgDir, remote string) Config {
 	c := Config{
 		DockerImage: "debian",
