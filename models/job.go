@@ -26,11 +26,12 @@ type Job struct {
 }
 
 const (
-	StatusNew    = "new"
-	StatusBusy   = "busy"
-	StatusFailed = "failed"
-	StatusPassed = "passed"
-	StatusError  = "error"
+	StatusUnknown = "unknown"
+	StatusNew     = "new"
+	StatusBusy    = "busy"
+	StatusFailed  = "failed"
+	StatusPassed  = "passed"
+	StatusError   = "error"
 )
 
 func (j *Job) SetStatusTime() {
