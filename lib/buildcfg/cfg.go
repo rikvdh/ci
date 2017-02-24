@@ -14,12 +14,17 @@ const filename = ".ci.yml"
 const travisconfig = ".travis.yml"
 
 type Config struct {
-	DockerImage   string `yaml:"docker_image"`
-	Language      string
-	Setup         []string `yaml:",flow"`
-	BeforeInstall []string `yaml:"before_install,flow"`
-	Install       []string `yaml:",flow"`
-	Script        []string `yaml:",flow"`
+	DockerImage string `yaml:"docker_image"`
+	Language    string
+	Addons      struct {
+		Apt struct {
+			Packages []string `yaml:",flow"`
+		}
+	}
+	Setup         multiString
+	BeforeInstall multiString `yaml:"before_install"`
+	Install       multiString
+	Script        multiString
 }
 
 func (c *Config) GetScript(f *os.File) {
@@ -29,50 +34,67 @@ echo "$(date) Build started"
 set -xe
 
 `)
-	for _, s := range c.Setup {
+	for _, s := range c.Setup.V {
 		f.WriteString(s + "\n")
 	}
-	for _, s := range c.BeforeInstall {
+	for _, s := range c.BeforeInstall.V {
 		f.WriteString(s + "\n")
 	}
-	for _, s := range c.Install {
+	for _, s := range c.Install.V {
 		f.WriteString(s + "\n")
 	}
-	for _, s := range c.Script {
+	for _, s := range c.Script.V {
 		f.WriteString(s + "\n")
 	}
 	f.WriteString("\nset +x\necho \"$(date) Build ended\"\n")
 	f.Close()
 }
 
+func loadCConfig(remote string, c *Config) {
+	setup := []string{
+		"apt-get update",
+		"apt-get install -y --force-yes sudo build-essential cmake",
+	}
+	c.Setup.V = append(setup, c.Setup.V...)
+	c.DockerImage = "debian"
+}
+
+func loadGoConfig(remote string, c *Config) {
+	u, _ := url.Parse(remote)
+	importPath := u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
+
+	setup := []string{
+		"apt-get update",
+		"apt-get install -y --force-yes rsync sudo",
+		"export GOPATH=/build",
+		"export PATH=$PATH:/build/bin",
+		"mkdir /tmp/dat",
+		"rsync -az . /tmp/dat",
+		"rm -rf *",
+		"mkdir -p src/" + importPath,
+		"rsync -az /tmp/dat/ src/" + importPath,
+		"rm -rf /tmp/dat",
+		"cd src/" + importPath,
+	}
+	c.Setup.V = append(setup, c.Setup.V...)
+
+	if len(c.Script.V) == 0 && len(c.Install.V) == 0 {
+		c.Script.V = []string{
+			"go get -t -v ./...",
+			"go test -v ./...",
+		}
+	}
+	c.DockerImage = "golang"
+}
+
 func loadLangConfig(language, remote string, c *Config) {
-	if language == "go" {
-		u, _ := url.Parse(remote)
-		importPath := u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
+	c.Setup.V = append([]string{"umask 0000"}, c.Setup.V...)
 
-		setup := []string{
-			"umask 0000",
-			"apt-get update",
-			"apt-get install -y --force-yes rsync sudo",
-			"export GOPATH=/build",
-			"export PATH=$PATH:/build/bin",
-			"mkdir /tmp/dat",
-			"rsync -az . /tmp/dat",
-			"rm -rf *",
-			"mkdir -p src/" + importPath,
-			"rsync -az /tmp/dat/ src/" + importPath,
-			"rm -rf /tmp/dat",
-			"cd src/" + importPath,
-		}
-
-		c.Setup = append(setup, c.Setup...)
-		if len(c.Script) == 0 && len(c.Install) == 0 {
-			c.Script = []string{
-				"go get -t -v ./...",
-				"go test -v ./...",
-			}
-		}
-		c.DockerImage = "golang"
+	switch language {
+	case "go":
+		loadGoConfig(remote, c)
+	case "c":
+		loadCConfig(remote, c)
 	}
 }
 
@@ -91,6 +113,7 @@ func Read(cfgDir, remote string) Config {
 	}
 
 	if err := yaml.Unmarshal(d, &c); err != nil {
+		fmt.Printf("yaml unmarshal failed: %v\n", err)
 		return c
 	}
 

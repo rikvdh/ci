@@ -61,7 +61,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	return branches, nil
 }
 
-func scheduleJob(buildID, branchID uint, ref string) {
+func ScheduleJob(buildID, branchID uint, ref string) {
 	fmt.Println("Scheduling job for build", buildID, "on branch", branchID)
 	job := models.Job{
 		BuildID:   buildID,
@@ -72,20 +72,20 @@ func scheduleJob(buildID, branchID uint, ref string) {
 	models.Handle().Create(&job)
 }
 
-func checkBranch(buildId uint, branch Branch) {
+func checkBranch(buildID uint, branch Branch) {
 	dbBranch := models.Branch{}
-	models.Handle().Where("name = ? AND build_id = ?", branch.Name, buildId).First(&dbBranch)
+	models.Handle().Where("name = ? AND build_id = ?", branch.Name, buildID).First(&dbBranch)
 
 	if dbBranch.ID > 0 && dbBranch.LastReference != branch.Hash {
 		dbBranch.LastReference = branch.Hash
 		models.Handle().Save(&dbBranch)
-		scheduleJob(buildId, dbBranch.ID, branch.Hash)
+		ScheduleJob(buildID, dbBranch.ID, branch.Hash)
 	} else if dbBranch.ID == 0 {
 		dbBranch.Name = branch.Name
-		dbBranch.BuildID = buildId
+		dbBranch.BuildID = buildID
 		dbBranch.LastReference = branch.Hash
 		models.Handle().Create(&dbBranch)
-		scheduleJob(buildId, dbBranch.ID, branch.Hash)
+		ScheduleJob(buildID, dbBranch.ID, branch.Hash)
 	}
 }
 
