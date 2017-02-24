@@ -28,10 +28,27 @@ Then you can run `./ci` and a web-interface should be active on `localhost:8081`
 
 ## Travis compatibility
 
-The aim is to be compatible with Travis-CI. Now the CI checks for `.ci.yml` in the root of your repository,
+The aim is to be compatible with Travis-CI. Currently the CI checks for `.ci.yml` in the root of your repository,
 when it doesn't exist, it tries `.travis.yml`
 
 The format is the same as for Travis-CI. When incompatibilities are found, please report them via the issue tracker!
+
+## Configuration
+
+To change some parameters in CI an INI file must be created, named `ci.ini`. The ini-file with all defaults is listed below.
+Omitting the ini-file just runs CI with all defaults.
+
+```ini
+[database]
+type = sqlite3
+connection = ci.db
+
+[build]
+parallel = 5
+
+[http]
+listen_uri = :8081
+```
 
 ## Contributing or problems
 

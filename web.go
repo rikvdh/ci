@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/lib/builder"
+	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
 )
@@ -200,5 +201,5 @@ func startWebinterface() {
 		party.Get("/job/:id", getJobAction)
 	}
 
-	http.Listen(":8081")
+	http.Listen(config.Get().ListeningURI)
 }

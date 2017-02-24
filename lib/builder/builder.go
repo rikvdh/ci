@@ -10,10 +10,11 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/rikvdh/ci/lib/buildcfg"
+	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
 )
 
-var runningJobs int
+var runningJobs uint
 
 const buildDir string = "/home/rik/ci-build"
 
@@ -84,7 +85,7 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 // Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
 	for {
-		if runningJobs < 5 {
+		if runningJobs < config.Get().ConcurrentBuilds {
 			var job models.Job
 
 			models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusNew).First(&job)

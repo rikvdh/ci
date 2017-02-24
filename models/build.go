@@ -10,10 +10,10 @@ type Build struct {
 
 	Uri string `form:"uri"`
 
-	Jobs []Job
+	Jobs     []Job
 	Branches []Branch
 
-	Status string `gorm:"-"`
+	Status     string `gorm:"-"`
 	StatusTime string `gorm:"-"`
 }
 
