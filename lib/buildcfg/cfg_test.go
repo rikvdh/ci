@@ -24,10 +24,10 @@ script:
 	if cfg.DockerImage != "test" {
 		t.Error("Expected docker-image to be test")
 	}
-	if len(cfg.Script) != 2 {
+	if len(cfg.Script.V) != 2 {
 		t.Error("Expected exactly 2 script lines")
 	}
-	if cfg.Script[0] != "boom" || cfg.Script[1] != "foo" {
+	if cfg.Script.V[0] != "boom" || cfg.Script.V[1] != "foo" {
 		t.Error("expected boom foo")
 	}
 }
@@ -38,7 +38,7 @@ func TestDefault(t *testing.T) {
 	if cfg.DockerImage != "debian" {
 		t.Error("Expected docker-image to be debian")
 	}
-	if len(cfg.Script) != 0 {
+	if len(cfg.Script.V) != 0 {
 		t.Error("Expected no script lines")
 	}
 }
