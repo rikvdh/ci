@@ -94,14 +94,15 @@ func loadGoConfig(remote string, c *Config) {
 }
 
 func loadLangConfig(language, remote string, c *Config) {
-	c.Setup.V = append([]string{"umask 0000"}, c.Setup.V...)
-
 	switch language {
 	case "go":
 		loadGoConfig(remote, c)
 	case "c":
 		loadCConfig(remote, c)
 	}
+
+	// umask must be first!
+	c.Setup.V = append([]string{"umask 0000"}, c.Setup.V...)
 }
 
 // Read build configuration, it need the root-directory for a repository
