@@ -24,5 +24,10 @@ func (b *Build) FetchLatestStatus() {
 		b.Status = "unknown"
 	}
 	b.Status = j.Status
-	b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
+
+	if j.UpdatedAt.IsZero() {
+		b.StatusTime = "n/a"
+	} else {
+		b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
+	}
 }
