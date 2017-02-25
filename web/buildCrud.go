@@ -49,6 +49,8 @@ func getBuildAction(ctx *iris2.Context) {
 	}
 	models.Handle().Preload("Branches").Where("id = ?", id).First(&item)
 
+	item.Uri = cleanReponame(item.Uri)
+
 	for k := range item.Branches {
 		item.Branches[k].FetchLatestStatus()
 	}

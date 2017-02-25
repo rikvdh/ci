@@ -14,7 +14,14 @@ import (
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
+	"net/url"
+	"strings"
 )
+
+func cleanReponame(remote string) string {
+	u, _ := url.Parse(remote)
+	return u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
+}
 
 func buildBranchAction(ctx *iris2.Context) {
 	item := models.Branch{}
@@ -24,7 +31,7 @@ func buildBranchAction(ctx *iris2.Context) {
 		return
 	}
 
-	models.Handle().Preload("Jobs").Preload("Build").Where("id = ?", id).First(&item)
+	models.Handle().Preload("Build").Where("id = ?", id).First(&item)
 	indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
 	ctx.Redirect(ctx.Referer())
 }
@@ -39,7 +46,10 @@ func getBranchAction(ctx *iris2.Context) {
 	models.Handle().Preload("Jobs", func(db *gorm.DB) *gorm.DB {
 		return db.Order("jobs.id DESC")
 	}).Preload("Build").Where("id = ?", id).First(&item)
+
+	item.Build.Uri = cleanReponame(item.Build.Uri)
 	for k := range item.Jobs {
+		item.Jobs[k].Reference = item.Jobs[k].Reference[:7]
 		item.Jobs[k].SetStatusTime()
 	}
 
@@ -59,7 +69,8 @@ func getJobAction(ctx *iris2.Context) {
 	item.SetStatusTime()
 
 	log := builder.GetLog(&item)
-
+	item.Build.Uri = cleanReponame(item.Build.Uri)
+	item.Reference = item.Reference[:7]
 	ctx.MustRender("job.html", iris2.Map{
 		"Page": "Job #" + strconv.Itoa(int(item.ID)) + "(" + item.Build.Uri + ")",
 		"Job":  item,
@@ -71,6 +82,7 @@ func homeAction(ctx *iris2.Context) {
 
 	models.Handle().Find(&builds)
 	for k := range builds {
+		builds[k].Uri = cleanReponame(builds[k].Uri)
 		builds[k].FetchLatestStatus()
 	}
 	ctx.MustRender("home.html", iris2.Map{"Page": "Home", "Builds": builds})
