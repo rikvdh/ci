@@ -17,6 +17,7 @@ import (
 
 var runningJobs uint
 var buildDir string
+var buildEvent chan uint
 
 func randomString(strlen int) string {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -80,11 +81,17 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 		job.SetStatus(models.StatusPassed)
 	}
 	runningJobs--
+	buildEvent <- runningJobs
 	cli.Close()
+}
+
+func GetEventChannel() chan uint {
+	return buildEvent
 }
 
 // Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
+	buildEvent = make(chan uint)
 	buildDir, _ = filepath.Abs(config.Get().BuildDir)
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
 		os.Mkdir(buildDir, 0755)
@@ -109,6 +116,7 @@ func Run() {
 				if started {
 					go waitForJob(f, cli, job)
 					runningJobs++
+					buildEvent <- runningJobs
 				}
 			} else {
 				time.Sleep(time.Second * 5)

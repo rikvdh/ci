@@ -98,10 +98,24 @@
 </nav>
 
 <div class="container">
-  {{ yield }}
+  <div class="col-sm-10">
+    {{ yield }}
+  </div>
+  <div class="col-sm-2">
+    <h3>Currently running</h3>
+    <div id="nobuilds" class="alert alert-info" style="display: none">
+      No active builds
+    </div>
+    <div id="buildlist">
+      
+    </div>
+  </div>
 </div>
 
+<script src="/public/jquery-3.1.1.min.js"></script>
+<script src="/public/json2.js"></script>
 <script src="/public/prism.js"></script>
+<script src="/public/app.js"></script>
 </body>
 
 </html>

@@ -116,6 +116,7 @@ func Read(cfgDir, remote string) Config {
 	if err != nil {
 		d, err = ioutil.ReadFile(cfgDir + "/" + travisconfig)
 	}
+
 	if err != nil {
 		fmt.Printf("Error reading config-file: %v\n", err)
 		return c
