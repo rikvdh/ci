@@ -98,10 +98,10 @@
 </nav>
 
 <div class="container">
-  <div class="col-sm-10">
+  <div class="col-sm-9">
     {{ yield }}
   </div>
-  <div class="col-sm-2">
+  <div class="col-sm-3">
     <h3>Currently running</h3>
     <div id="nobuilds" class="alert alert-info" style="display: none">
       No active builds
@@ -113,6 +113,7 @@
 </div>
 
 <script src="/public/jquery-3.1.1.min.js"></script>
+<script src="/public/reconnecting-websocket.min.js"></script>
 <script src="/public/json2.js"></script>
 <script src="/public/prism.js"></script>
 <script src="/public/app.js"></script>

@@ -1,5 +1,5 @@
 $(function() {
-	ws = new WebSocket("ws://" + location.host + "/ws");
+	ws = new ReconnectingWebSocket("ws://" + location.host + "/ws");
 	ws.onmessage = function(e) {
 		var model = JSON.parse(e.data);
 		if (model.length == 0) {
