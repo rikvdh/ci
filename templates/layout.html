@@ -61,12 +61,15 @@
   }
 
   .build {
-    font-size: 18px;
+    font-size: 17px;
     border: 1px solid #EFF0EC;
     margin-bottom: .3rem !important;
     clear: both;
     padding: 10px;
     padding-left: 20px;
+  }
+  .ministatus {
+    font-size: 15px;
   }
 
   body {
@@ -108,6 +111,16 @@
     </div>
     <div id="buildlist">
       
+    </div>
+    <div id="buildtemplate" style="display: none">
+      <div class="col-sm-12 ministatus build build-##STATUS##">
+        <div class="col-sm-12">
+          <span class="glyphicon glyphicon-##STATUS##"></span>
+          Build ###JOBID##<br />
+          <a href="/job/##JOBID##">Commit ##COMMIT##</a><br />
+          <span class="time-block" data-id="##START##">##SINCE##</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>

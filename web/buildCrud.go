@@ -52,6 +52,7 @@ func getBuildAction(ctx *iris2.Context) {
 	item.Uri = cleanReponame(item.Uri)
 
 	for k := range item.Branches {
+		item.Branches[k].LastReference = item.Branches[k].LastReference[:7]
 		item.Branches[k].FetchLatestStatus()
 	}
 

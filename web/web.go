@@ -12,7 +12,6 @@ import (
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/config"
-	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
 	"net/url"
 	"strings"
@@ -21,19 +20,6 @@ import (
 func cleanReponame(remote string) string {
 	u, _ := url.Parse(remote)
 	return u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
-}
-
-func buildBranchAction(ctx *iris2.Context) {
-	item := models.Branch{}
-	id, err := ctx.ParamInt("id")
-	if err != nil {
-		ctx.Redirect(ctx.Referer())
-		return
-	}
-
-	models.Handle().Preload("Build").Where("id = ?", id).First(&item)
-	indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
-	ctx.Redirect(ctx.Referer())
 }
 
 func getBranchAction(ctx *iris2.Context) {
@@ -116,7 +102,6 @@ func Start() {
 		party.Get("/addbuild", addBuildAction)
 		party.Post("/addbuild", addBuildAction)
 		party.Get("/build/:id", getBuildAction)
-		party.Get("/buildbranch/:id", buildBranchAction)
 		party.Get("/branch/:id", getBranchAction)
 		party.Get("/job/:id", getJobAction)
 	}

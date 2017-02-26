@@ -2,9 +2,11 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/websocket"
 	"github.com/rikvdh/ci/lib/builder"
+	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
 	"sync"
 )
@@ -28,7 +30,7 @@ func startWs(app *iris2.Framework) {
 			var running []models.Job
 
 			<-ch
-			models.Handle().Where("status = ?", models.StatusBusy).Find(&running)
+			models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&running)
 			data, _ := json.Marshal(running)
 
 			mu.Lock()
@@ -50,11 +52,25 @@ func startWs(app *iris2.Framework) {
 		mu.Unlock()
 
 		var running []models.Job
-		models.Handle().Where("status = ?", models.StatusBusy).Find(&running)
+		models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&running)
 		data, _ := json.Marshal(running)
 		c.EmitMessage(data)
 
 		c.OnMessage(func(d []byte) {
+			var req struct {
+				Action string
+				ID     int `json:",omitempty"`
+			}
+			json.Unmarshal(d, &req)
+			if req.Action == "build" {
+				item := models.Branch{}
+				models.Handle().Preload("Build").Where("id = ?", req.ID).First(&item)
+				if item.ID > 0 {
+					indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
+				} else {
+					fmt.Printf("error, branch not found: %v\n", req)
+				}
+			}
 		})
 
 		c.OnDisconnect(func() {
