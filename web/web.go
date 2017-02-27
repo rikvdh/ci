@@ -66,7 +66,7 @@ func getJobAction(ctx *iris2.Context) {
 func homeAction(ctx *iris2.Context) {
 	var builds []models.Build
 
-	models.Handle().Find(&builds)
+	models.Handle().Order("updated_at DESC").Find(&builds)
 	for k := range builds {
 		builds[k].Uri = cleanReponame(builds[k].Uri)
 		builds[k].FetchLatestStatus()
