@@ -89,6 +89,22 @@ func GetEventChannel() chan uint {
 	return buildEvent
 }
 
+func retakeRunningJobs() {
+	var jobs []models.Job
+	models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusBusy).Find(&jobs)
+	for _, job := range jobs {
+		f, err := os.OpenFile(buildDir+"/"+strconv.Itoa(int(job.ID))+".log", os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			job.SetStatus(models.StatusError, fmt.Sprintf("creating logfile failed: %v", err))
+			continue
+		}
+		defer f.Close()
+		cli := getClient()
+		go waitForJob(f, cli, job)
+		runningJobs++
+	}
+}
+
 // Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
 	buildEvent = make(chan uint)
@@ -96,6 +112,8 @@ func Run() {
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
 		os.Mkdir(buildDir, 0755)
 	}
+
+	retakeRunningJobs()
 
 	for {
 		if runningJobs < config.Get().ConcurrentBuilds {
@@ -122,6 +140,7 @@ func Run() {
 				time.Sleep(time.Second * 5)
 			}
 		} else {
+			fmt.Printf("Job ratelimiter: %d/%d\n", runningJobs, config.Get().ConcurrentBuilds)
 			time.Sleep(time.Second * 5)
 		}
 	}
