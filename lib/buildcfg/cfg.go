@@ -41,11 +41,10 @@ echo "$(date) Build started"
 set -xe
 
 `)
-	if len(c.Addons.Apt.Packages) > 0 {
-		f.WriteString("apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ")
-		f.WriteString(strings.Join(c.Addons.Apt.Packages, " "))
-		f.WriteString("\n")
-	}
+
+	f.WriteString("apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ")
+	f.WriteString(strings.Join(c.Addons.Apt.Packages, " "))
+	f.WriteString("\n")
 
 	for _, s := range c.Setup.V {
 		f.WriteString(s + "\n")
@@ -64,7 +63,7 @@ set -xe
 }
 
 func loadCConfig(remote string, c *Config) {
-	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "build-essential", "cmake", "libssl-dev", "python-dev", "libffi-dev")
+	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "build-essential", "cmake", "libssl-dev", "python-dev", "libffi-dev")
 	c.DockerImage = "debian"
 }
 
@@ -85,7 +84,7 @@ func loadGoConfig(remote string, c *Config) {
 		"cd src/" + importPath,
 	}
 	c.Setup.V = append(setup, c.Setup.V...)
-	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "rsync")
+	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "rsync")
 
 	if len(c.Script.V) == 0 && len(c.Install.V) == 0 {
 		c.Script.V = []string{
@@ -130,6 +129,7 @@ func Read(cfgDir, remote string) Config {
 	if c.Language != "" {
 		loadLangConfig(c.Language, remote, &c)
 	}
+	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "git-core")
 
 	return c
 }
