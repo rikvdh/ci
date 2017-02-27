@@ -42,7 +42,7 @@ set -xe
 
 `)
 	if len(c.Addons.Apt.Packages) > 0 {
-		f.WriteString("apt-get -yq --force-yes install ")
+		f.WriteString("apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ")
 		f.WriteString(strings.Join(c.Addons.Apt.Packages, " "))
 		f.WriteString("\n")
 	}
@@ -64,7 +64,7 @@ set -xe
 }
 
 func loadCConfig(remote string, c *Config) {
-	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "build-essential", "cmake", "libssl-dev")
+	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "build-essential", "cmake", "libssl-dev", "python-dev", "libffi-dev")
 	c.DockerImage = "debian"
 }
 
