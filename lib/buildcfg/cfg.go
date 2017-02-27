@@ -35,10 +35,18 @@ type Config struct {
 func (c *Config) GetScript(f *os.File) {
 	f.WriteString(`#!/bin/sh
 cd /build
+umask 0000
+apt-get -yq update
 echo "$(date) Build started"
 set -xe
 
 `)
+	if len(c.Addons.Apt.Packages) > 0 {
+		f.WriteString("apt-get -yq --force-yes install ")
+		f.WriteString(strings.Join(c.Addons.Apt.Packages, " "))
+		f.WriteString("\n")
+	}
+
 	for _, s := range c.Setup.V {
 		f.WriteString(s + "\n")
 	}
@@ -56,11 +64,7 @@ set -xe
 }
 
 func loadCConfig(remote string, c *Config) {
-	setup := []string{
-		"apt-get update",
-		"apt-get install -y --force-yes sudo build-essential cmake libssl-dev",
-	}
-	c.Setup.V = append(setup, c.Setup.V...)
+	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "build-essential", "cmake", "libssl-dev")
 	c.DockerImage = "debian"
 }
 
@@ -70,8 +74,6 @@ func loadGoConfig(remote string, c *Config) {
 
 	// Most part of this just moves everything from builddir to the correct go-import-path
 	setup := []string{
-		"apt-get update",
-		"apt-get install -y --force-yes rsync sudo",
 		"export GOPATH=/build",
 		"export PATH=$PATH:/build/bin",
 		"mkdir /tmp/dat",
@@ -83,6 +85,7 @@ func loadGoConfig(remote string, c *Config) {
 		"cd src/" + importPath,
 	}
 	c.Setup.V = append(setup, c.Setup.V...)
+	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "rsync")
 
 	if len(c.Script.V) == 0 && len(c.Install.V) == 0 {
 		c.Script.V = []string{
@@ -100,9 +103,6 @@ func loadLangConfig(language, remote string, c *Config) {
 	case "c":
 		loadCConfig(remote, c)
 	}
-
-	// umask must be first!
-	c.Setup.V = append([]string{"umask 0000"}, c.Setup.V...)
 }
 
 // Read build configuration, it need the root-directory for a repository
