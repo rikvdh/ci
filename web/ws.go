@@ -11,6 +11,19 @@ import (
 	"sync"
 )
 
+func getBuildList() []byte {
+	var msg struct {
+		running []models.Job
+		queue   []models.Job
+	}
+
+	models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&msg.running)
+
+	models.Handle().Where("status = ?", models.StatusNew).Order("start DESC").Find(&msg.queue)
+	data, _ := json.Marshal(msg)
+	return data
+}
+
 func startWs(app *iris2.Framework) {
 	ws := websocket.New(websocket.Config{
 		Endpoint:         "/ws",
@@ -27,12 +40,9 @@ func startWs(app *iris2.Framework) {
 	go func() {
 		ch := builder.GetEventChannel()
 		for {
-			var running []models.Job
-
 			<-ch
-			models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&running)
-			data, _ := json.Marshal(running)
 
+			data := getBuildList()
 			mu.Lock()
 			for _, con := range conns {
 				con.EmitMessage(data)
@@ -51,10 +61,7 @@ func startWs(app *iris2.Framework) {
 		conns[c.ID()] = c
 		mu.Unlock()
 
-		var running []models.Job
-		models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&running)
-		data, _ := json.Marshal(running)
-		c.EmitMessage(data)
+		c.EmitMessage(getBuildList())
 
 		c.OnMessage(func(d []byte) {
 			var req struct {

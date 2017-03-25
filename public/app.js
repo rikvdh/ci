@@ -20,13 +20,13 @@ function timeSince(date) {
 $(function() {
 	ws = new ReconnectingWebSocket("ws://" + location.host + "/ws");
 	ws.onmessage = function(e) {
-		var model = JSON.parse(e.data);
-		if (model.length == 0) {
+		var d = JSON.parse(e.data);
+		if (d.running.length == 0) {
 			$("#nobuilds").show()
 			$("#buildlist").hide()
 		} else {
 			var ret = ""
-			$.each(model, function( index, value ){
+			$.each(d.running, function( index, value ){
 				tpl = $('#buildtemplate').html()
 				tpl = tpl.replace(/##JOBID##/g, value.ID);
 				tpl = tpl.replace(/##COMMIT##/g, value.Reference.substring(0, 7));
@@ -38,6 +38,19 @@ $(function() {
 			$('#buildlist').html(ret)
 			$("#nobuilds").hide()
 			$("#buildlist").show()
+		}
+		if (d.queue.length > 0) {
+			var ret = ""
+			$.each(d.running, function( index, value ){
+				tpl = $('#buildtemplate').html()
+				tpl = tpl.replace(/##JOBID##/g, value.ID);
+				tpl = tpl.replace(/##COMMIT##/g, value.Reference.substring(0, 7));
+				tpl = tpl.replace(/##STATUS##/g, value.Status);
+				tpl = tpl.replace(/##START##/g, value.Start);
+				tpl = tpl.replace(/##SINCE##/g, timeSince(new Date(value.Start)));
+				ret += tpl;
+			});
+			$('#buildqueue').html(ret)
 		}
 	}
 	ws.onopen = function() {
