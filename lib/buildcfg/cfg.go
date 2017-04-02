@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,6 +24,9 @@ type Config struct {
 	Addons      struct {
 		Apt struct {
 			Packages []string `yaml:",flow"`
+		}
+		Artifacts struct {
+			Paths []string `yaml:",flow"`
 		}
 	}
 	Setup         multiString
@@ -101,6 +105,8 @@ func loadLangConfig(language, remote string, c *Config) {
 		loadGoConfig(remote, c)
 	case "c":
 		loadCConfig(remote, c)
+	default:
+		logrus.Errorf("Unsupported language: %s", language)
 	}
 }
 
@@ -130,6 +136,5 @@ func Read(cfgDir, remote string) Config {
 		loadLangConfig(c.Language, remote, &c)
 	}
 	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "git-core")
-
 	return c
 }

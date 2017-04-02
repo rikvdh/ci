@@ -40,40 +40,50 @@ func GetLog(job *models.Job) string {
 }
 
 // Returns boolean true when the job is started
-func startJob(f *os.File, cli *client.Client, job models.Job) bool {
-	targetDir := buildDir + "/" + randomString(16)
-
+func startJob(f *os.File, job models.Job) {
 	fmt.Fprintf(f, "starting build job %d\n", job.ID)
-	job.SetStatus(models.StatusBusy)
+	job.BuildDir = buildDir + "/" + randomString(16)
 	job.Start = time.Now()
-	tag, err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, targetDir)
-	job.StoreTag(tag)
+	job.SetStatus(models.StatusBusy)
+
+	tag, err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, job.BuildDir)
 	if err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
-		return false
+		return
 	}
+	job.StoreTag(tag)
 
 	fmt.Fprintf(f, "reading configuration\n")
-	cfg := buildcfg.Read(targetDir, job.Build.Uri)
+	cfg := buildcfg.Read(job.BuildDir, job.Build.Uri)
 
+	cli := getClient()
 	if err := fetchImage(f, cli, &cfg); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("fetch image failed: %v", err))
 	}
 
 	fmt.Fprintf(f, "starting container...\n")
-	containerID, err := startContainer(cli, &cfg, targetDir)
+	containerID, err := startContainer(cli, &cfg, job.BuildDir)
 	if err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("starting container failed: %v", err))
-		return false
+		return
 	}
 	fmt.Fprintf(f, "container started, ID: %s\n", containerID)
 
 	job.Container = containerID
 	job.SetStatus(models.StatusBusy)
-	return true
+
+	go func() {
+		ok := waitForJob(f, cli, &job)
+		if ok {
+			handleArtifacts(f, &job, &cfg)
+		}
+	}()
+	runningJobs++
+	buildEvent <- runningJobs
 }
 
-func waitForJob(f *os.File, cli *client.Client, job models.Job) {
+func waitForJob(f *os.File, cli *client.Client, job *models.Job) (ok bool) {
+	ok = false
 	models.Handle().First(&job, job.ID)
 	code, err := readContainer(f, cli, job.Container)
 	if err != nil {
@@ -81,11 +91,12 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 	} else if code != 0 {
 		job.SetStatus(models.StatusFailed, fmt.Sprintf("build failed with code: %d", code))
 	} else {
-		job.SetStatus(models.StatusPassed)
+		ok = true
 	}
 	runningJobs--
 	buildEvent <- runningJobs
 	cli.Close()
+	return
 }
 
 func GetEventChannel() *chan uint {
@@ -103,7 +114,7 @@ func retakeRunningJobs() {
 		}
 		defer f.Close()
 		cli := getClient()
-		go waitForJob(f, cli, job)
+		go waitForJob(f, cli, &job)
 		runningJobs++
 	}
 }
@@ -131,13 +142,7 @@ func Run() {
 				}
 				defer f.Close()
 
-				cli := getClient()
-				started := startJob(f, cli, job)
-				if started {
-					go waitForJob(f, cli, job)
-					runningJobs++
-					buildEvent <- runningJobs
-				}
+				startJob(f, job)
 			} else {
 				time.Sleep(time.Second * 5)
 			}

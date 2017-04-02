@@ -66,7 +66,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 }
 
 func ScheduleJob(buildID, branchID uint, ref string) {
-	logrus.Infof("Scheduling job for build %s on branch %s", buildID, branchID)
+	logrus.Infof("Scheduling job for build %d on branch %d", buildID, branchID)
 	job := models.Job{
 		BuildID:   buildID,
 		BranchID:  branchID,

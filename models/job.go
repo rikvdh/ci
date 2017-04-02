@@ -16,6 +16,7 @@ type Job struct {
 	Start     time.Time
 	End       time.Time
 	Tag       string
+	BuildDir  string
 
 	Branch   Branch
 	BranchID uint `gorm:"index"`
