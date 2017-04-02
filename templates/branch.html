@@ -9,6 +9,9 @@
 		</div>
 		<div class="col-sm-4">
 			{{ $item.StatusTime }}
+			{{ if $item.Tag }}
+				<div class="badge-default badge">{{ $item.Tag }}</div>
+			{{ end }}
 		</div>
 	</div>
 {{ end }}

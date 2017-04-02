@@ -2,24 +2,25 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
+	"sync"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/websocket"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
-	"sync"
 )
 
 func getBuildList() []byte {
 	var msg struct {
-		running []models.Job
-		queue   []models.Job
+		Running []models.Job `json:"running"`
+		Queue   []models.Job `json:"queue"`
 	}
 
-	models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&msg.running)
+	models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&msg.Running)
+	models.Handle().Where("status = ?", models.StatusNew).Order("start DESC").Find(&msg.Queue)
 
-	models.Handle().Where("status = ?", models.StatusNew).Order("start DESC").Find(&msg.queue)
 	data, _ := json.Marshal(msg)
 	return data
 }
@@ -32,22 +33,22 @@ func startWs(app *iris2.Framework) {
 
 	app.Adapt(ws)
 
-	var conns map[string]websocket.Connection
-	var mu sync.Mutex
+	var mu sync.RWMutex
 
-	conns = make(map[string]websocket.Connection)
+	conns := make(map[string]websocket.Connection)
 
 	go func() {
 		ch := builder.GetEventChannel()
 		for {
-			<-ch
+			<-*ch
 
 			data := getBuildList()
-			mu.Lock()
+			logrus.Infof("Emit new build-list via websocket to %d connections", len(conns))
+			mu.RLock()
 			for _, con := range conns {
 				con.EmitMessage(data)
 			}
-			mu.Unlock()
+			mu.RUnlock()
 		}
 	}()
 
@@ -75,7 +76,7 @@ func startWs(app *iris2.Framework) {
 				if item.ID > 0 {
 					indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
 				} else {
-					fmt.Printf("error, branch not found: %v\n", req)
+					logrus.Warnf("error, branch not found: %v", req)
 				}
 			}
 		})

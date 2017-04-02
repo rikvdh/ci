@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func cloneRepo(f *os.File, uri, branch, reference, dir string) error {
+func cloneRepo(f *os.File, uri, branch, reference, dir string) (string, error) {
 	fmt.Fprintf(f, "Cloning %s, branch %s... ", uri, branch)
 
 	err := git.Clone(uri, dir, git.CloneRepoOptions{
@@ -17,13 +17,13 @@ func cloneRepo(f *os.File, uri, branch, reference, dir string) error {
 	fmt.Fprintf(f, "done\n")
 
 	if err != nil {
-		return fmt.Errorf("git clone failed: %v", err)
+		return "", fmt.Errorf("git clone failed: %v", err)
 	}
 
 	fmt.Fprintf(f, "checkout reference: %s... ", reference)
 	err = git.Checkout(dir, git.CheckoutOptions{Branch: reference})
 	if err != nil {
-		return err
+		return "", err
 	}
 	fmt.Fprintf(f, "done\n")
 
@@ -33,10 +33,15 @@ func cloneRepo(f *os.File, uri, branch, reference, dir string) error {
 		cmd.AddArguments("update", "--init", "--recursive")
 		_, err := cmd.RunInDir(dir)
 		if err != nil {
-			return err
+			return "", err
 		}
 		fmt.Fprint(f, "done\n")
 	}
 
-	return nil
+	// git describe --exact-match --tags
+	tagcmd := git.NewCommand("describe")
+	tagcmd.AddArguments("--exact-match", "--tags")
+	tag, err := tagcmd.RunInDir(dir)
+
+	return tag, nil
 }

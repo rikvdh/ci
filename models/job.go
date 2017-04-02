@@ -15,6 +15,7 @@ type Job struct {
 	Message   string
 	Start     time.Time
 	End       time.Time
+	Tag       string
 
 	Branch   Branch
 	BranchID uint `gorm:"index"`
@@ -42,6 +43,11 @@ func (j *Job) SetStatusTime() {
 	} else {
 		j.StatusTime = j.End.Sub(j.Start).String()
 	}
+}
+
+func (j *Job) StoreTag(tag string) {
+	j.Tag = tag
+	Handle().Save(j)
 }
 
 func (j *Job) SetStatus(status string, message ...string) error {

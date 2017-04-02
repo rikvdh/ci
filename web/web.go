@@ -1,9 +1,12 @@
 package web
 
 import (
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
@@ -13,8 +16,6 @@ import (
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
-	"net/url"
-	"strings"
 )
 
 func cleanReponame(remote string) string {
@@ -106,5 +107,6 @@ func Start() {
 		party.Get("/job/:id", getJobAction)
 	}
 
+	logrus.Infof("Listening on %s", config.Get().ListeningURI)
 	http.Listen(config.Get().ListeningURI)
 }

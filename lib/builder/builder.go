@@ -5,14 +5,15 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/client"
 	"github.com/rikvdh/ci/lib/buildcfg"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
-	"path/filepath"
 )
 
 var runningJobs uint
@@ -43,9 +44,11 @@ func startJob(f *os.File, cli *client.Client, job models.Job) bool {
 	targetDir := buildDir + "/" + randomString(16)
 
 	fmt.Fprintf(f, "starting build job %d\n", job.ID)
+	job.SetStatus(models.StatusBusy)
 	job.Start = time.Now()
-
-	if err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, targetDir); err != nil {
+	tag, err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, targetDir)
+	job.StoreTag(tag)
+	if err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
 		return false
 	}
@@ -85,17 +88,17 @@ func waitForJob(f *os.File, cli *client.Client, job models.Job) {
 	cli.Close()
 }
 
-func GetEventChannel() chan uint {
-	return buildEvent
+func GetEventChannel() *chan uint {
+	return &buildEvent
 }
 
 func retakeRunningJobs() {
 	var jobs []models.Job
 	models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusBusy).Find(&jobs)
 	for _, job := range jobs {
-		f, err := os.OpenFile(buildDir+"/"+strconv.Itoa(int(job.ID))+".log", os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(buildDir+"/"+strconv.Itoa(int(job.ID))+".log", os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
-			job.SetStatus(models.StatusError, fmt.Sprintf("creating logfile failed: %v", err))
+			job.SetStatus(models.StatusError, fmt.Sprintf("reopening logfile failed: %v", err))
 			continue
 		}
 		defer f.Close()
@@ -121,8 +124,6 @@ func Run() {
 
 			models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusNew).First(&job)
 			if job.ID > 0 {
-				cli := getClient()
-
 				f, err := os.OpenFile(buildDir+"/"+strconv.Itoa(int(job.ID))+".log", os.O_CREATE|os.O_WRONLY, 0644)
 				if err != nil {
 					job.SetStatus(models.StatusError, fmt.Sprintf("creating logfile failed: %v", err))
@@ -130,6 +131,7 @@ func Run() {
 				}
 				defer f.Close()
 
+				cli := getClient()
 				started := startJob(f, cli, job)
 				if started {
 					go waitForJob(f, cli, job)
@@ -140,7 +142,7 @@ func Run() {
 				time.Sleep(time.Second * 5)
 			}
 		} else {
-			fmt.Printf("Job ratelimiter: %d/%d\n", runningJobs, config.Get().ConcurrentBuilds)
+			logrus.Infof("Job ratelimiter: %d/%d", runningJobs, config.Get().ConcurrentBuilds)
 			time.Sleep(time.Second * 5)
 		}
 	}

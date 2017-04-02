@@ -21,7 +21,7 @@ $(function() {
 	ws = new ReconnectingWebSocket("ws://" + location.host + "/ws");
 	ws.onmessage = function(e) {
 		var d = JSON.parse(e.data);
-		if (d.running.length == 0) {
+		if (typeof d.running == "undefined" || d.running.length == 0) {
 			$("#nobuilds").show()
 			$("#buildlist").hide()
 		} else {
@@ -39,9 +39,9 @@ $(function() {
 			$("#nobuilds").hide()
 			$("#buildlist").show()
 		}
-		if (d.queue.length > 0) {
+		if (typeof d.queue == "undefined" || d.queue.length > 0) {
 			var ret = ""
-			$.each(d.running, function( index, value ){
+			$.each(d.queue, function( index, value ){
 				tpl = $('#buildtemplate').html()
 				tpl = tpl.replace(/##JOBID##/g, value.ID);
 				tpl = tpl.replace(/##COMMIT##/g, value.Reference.substring(0, 7));

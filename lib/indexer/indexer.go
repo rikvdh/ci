@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/rikvdh/ci/models"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
+	"strings"
 )
+
+const remoteName string = "rem"
 
 type Branch struct {
 	Hash string
@@ -24,14 +28,14 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	}
 
 	_, err = r.CreateRemote(&config.RemoteConfig{
-		Name: "r",
+		Name: remoteName,
 		URL:  repo,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create remote error: %v", err)
 	}
 
-	rem, err := r.Remote("r")
+	rem, err := r.Remote(remoteName)
 	if err != nil {
 		return nil, fmt.Errorf("remote err: %v", err)
 	}
@@ -52,7 +56,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 		if ref.Type() == plumbing.HashReference && !ref.IsTag() {
 			branches = append(branches, Branch{
 				Hash: ref.Hash().String(),
-				Name: ref.Name().Short(),
+				Name: strings.Replace(ref.Name().Short(), remoteName+"/", "", 1),
 			})
 		}
 		return nil
@@ -62,7 +66,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 }
 
 func ScheduleJob(buildID, branchID uint, ref string) {
-	fmt.Println("Scheduling job for build", buildID, "on branch", branchID)
+	logrus.Infof("Scheduling job for build %s on branch %s", buildID, branchID)
 	job := models.Job{
 		BuildID:   buildID,
 		BranchID:  branchID,
@@ -96,7 +100,7 @@ func Run() {
 		for _, build := range builds {
 			branches, err := RemoteBranches(build.Uri)
 			if err != nil {
-				fmt.Printf("error reading branches from %s: %v\n", build.Uri, err)
+				logrus.Warnf("error reading branches from %s: %v", build.Uri, err)
 			}
 			for _, branch := range branches {
 				checkBranch(build.ID, branch)

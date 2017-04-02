@@ -2,3 +2,4 @@ ci
 tmp/*
 *.db
 ci-build
+*.ini
