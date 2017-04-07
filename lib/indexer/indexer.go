@@ -2,15 +2,12 @@ package indexer
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"code.gitea.io/git"
 	"github.com/Sirupsen/logrus"
 	"github.com/rikvdh/ci/models"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/config"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
-	"strings"
 )
 
 const remoteName string = "rem"
@@ -21,48 +18,28 @@ type Branch struct {
 }
 
 func RemoteBranches(repo string) ([]Branch, error) {
-	// Create a new repository
-	r, err := git.Init(memory.NewStorage(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("git init error: %v", err)
-	}
-
-	_, err = r.CreateRemote(&config.RemoteConfig{
-		Name: remoteName,
-		URL:  repo,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("create remote error: %v", err)
-	}
-
-	rem, err := r.Remote(remoteName)
-	if err != nil {
-		return nil, fmt.Errorf("remote err: %v", err)
-	}
-
-	err = rem.Fetch(&git.FetchOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	refs, err := r.References()
+	s, err := git.NewCommand("-c", "core.askpass=true", "ls-remote", "-h", repo).RunTimeout(time.Second * 5)
 	if err != nil {
 		return nil, err
 	}
 
 	var branches []Branch
 
-	refs.ForEach(func(ref *plumbing.Reference) error {
-		if ref.Type() == plumbing.HashReference && !ref.IsTag() {
+	references := strings.Split(s, "\n")
+
+	for _, ref := range references {
+		refsplit := strings.Fields(ref)
+		if len(refsplit) == 2 {
 			branches = append(branches, Branch{
-				Hash: ref.Hash().String(),
-				Name: strings.Replace(ref.Name().Short(), remoteName+"/", "", 1),
+				Hash: refsplit[0],
+				Name: strings.Replace(refsplit[1], "refs/heads/", "", 1),
 			})
 		}
-		return nil
-	})
-
-	return branches, nil
+	}
+	if len(branches) > 0 {
+		return branches, nil
+	}
+	return nil, fmt.Errorf("no remote branches found")
 }
 
 func ScheduleJob(buildID, branchID uint, ref string) {

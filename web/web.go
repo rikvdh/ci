@@ -19,7 +19,14 @@ import (
 )
 
 func cleanReponame(remote string) string {
-	u, _ := url.Parse(remote)
+	if strings.Contains(remote, ":") && strings.Contains(remote, "@") {
+		rem := remote[strings.Index(remote, "@")+1:]
+		return strings.Replace(strings.Replace(rem, ".git", "", 1), ":", "/", 1)
+	}
+	u, err := url.Parse(remote)
+	if err != nil {
+		return remote
+	}
 	return u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
+	"time"
 )
 
 func getBuildList() []byte {
@@ -55,7 +56,11 @@ func startWs(app *iris2.Framework) {
 	ws.OnConnection(func(c websocket.Connection) {
 		ctx := c.Context()
 		if ctx.Session().GetString("authenticated") != "true" {
-			c.Disconnect()
+			go func() {
+				// its a hack, but for some reason disconnecting here fails..
+				time.Sleep(time.Second * 2)
+				c.Disconnect()
+			}()
 			return
 		}
 		mu.Lock()
