@@ -18,7 +18,12 @@ function timeSince(date) {
 }
 
 $(function() {
-	ws = new ReconnectingWebSocket("ws://" + location.host + $('#baseUri').val() + "ws");
+	var wssUri = "ws://" + location.host + $('#baseUri').val() + "ws";
+	if (location.protocol === 'https:') {
+		wssUri = "wss://" + location.host + $('#baseUri').val() + "ws";
+	}
+
+	ws = new ReconnectingWebSocket(wssUri);
 	ws.onmessage = function(e) {
 		var d = JSON.parse(e.data);
 		if (typeof d.running == "undefined" || d.running.length == 0) {
