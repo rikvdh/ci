@@ -18,9 +18,10 @@ const travisconfig = ".travis.yml"
 
 // Config is the travis-compatible structure
 type Config struct {
-	DockerImage string `yaml:"docker_image"`
-	Language    string
-	Addons      struct {
+	DockerImage  string `yaml:"docker_image"`
+	Language     string
+	GoImportPath string `yaml:"go_import_path"`
+	Addons       struct {
 		Apt struct {
 			Packages []string `yaml:",flow"`
 		}

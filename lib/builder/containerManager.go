@@ -49,12 +49,17 @@ func startContainer(cli *client.Client, cfg *buildcfg.Config, path string) (stri
 	defer f.Close()
 	cfg.GetScript(f)
 
+	buildDir := "/build"
+	if len(cfg.GoImportPath) > 0 {
+		buildDir = "/build/src/" + cfg.GoImportPath
+	}
+
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: cfg.DockerImage,
 		Cmd:   []string{"sh", "-c", "/ci/" + buildFile},
 		Env:   []string{"TRAVIS_OS_NAME=linux"},
 	}, &container.HostConfig{
-		Binds: []string{"/tmp:/ci", path + ":/build"},
+		Binds: []string{"/tmp:/ci", path + ":" + buildDir},
 	}, nil, "")
 	if err != nil {
 		return "", err

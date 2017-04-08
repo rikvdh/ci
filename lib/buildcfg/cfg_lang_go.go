@@ -18,18 +18,17 @@ func goImportPath(remote string) string {
 }
 
 func loadGoConfig(remote string, c *Config) {
-	importPath := goImportPath(remote)
+	if len(c.GoImportPath) > 0 {
+		c.GoImportPath = goImportPath(remote)
+	}
 
 	// Most part of this just moves everything from builddir to the correct go-import-path
 	setup := []string{
-		"export GOPATH=/build/.gopath",
+		"export GOPATH=/build",
 		"export PATH=$PATH:/build/bin",
-		"mkdir -p /build/.gopath/src/" + importPath,
-		"mount -o bind /build /build/.gopath/src/" + importPath,
-		"cd /build/.gopath/src/" + importPath,
+		"cd /build/src/" + c.GoImportPath,
 	}
 	c.Setup.V = append(setup, c.Setup.V...)
-	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "rsync")
 
 	if len(c.Script.V) == 0 && len(c.Install.V) == 0 {
 		c.Script.V = []string{
