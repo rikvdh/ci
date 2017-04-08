@@ -1,7 +1,6 @@
 package buildcfg
 
 import (
-	"github.com/Sirupsen/logrus"
 	"net/url"
 	"strings"
 )
@@ -19,10 +18,9 @@ func goImportPath(remote string) string {
 }
 
 func loadGoConfig(remote string, c *Config) {
-	if len(c.GoImportPath) > 0 {
+	if len(c.GoImportPath) == 0 {
 		c.GoImportPath = goImportPath(remote)
 	}
-	logrus.Infof("Goimport path for %s is %s", remote, c.GoImportPath)
 
 	// Most part of this just moves everything from builddir to the correct go-import-path
 	setup := []string{
