@@ -82,6 +82,11 @@ func homeAction(ctx *iris2.Context) {
 	ctx.MustRender("home.html", iris2.Map{"Page": "Home", "Builds": builds})
 }
 
+func beforeRender(ctx *iris2.Context, m iris2.Map) iris2.Map {
+	m["baseUri"] = config.Get().BaseURI
+	return m
+}
+
 func Start() {
 	http := iris2.New(iris2.Configuration{Gzip: false})
 	http.Adapt(sessions.New(sessions.Config{
@@ -93,6 +98,7 @@ func Start() {
 	http.Layout("layout.html")
 	http.StaticWeb("/public", "./public")
 
+	http.BeforeRender(beforeRender)
 	http.Get("/login", loginAction)
 	http.Post("/login", loginAction)
 

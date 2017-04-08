@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/go-iris2/iris2"
+	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
 )
 
@@ -15,7 +16,7 @@ func loginAction(ctx *iris2.Context) {
 			models.Handle().Where(user).First(&user)
 			if user.ID > 0 && user.ValidPassword() {
 				ctx.Session().Set("authenticated", "true")
-				ctx.Redirect("/")
+				ctx.Redirect(config.Get().BaseURI)
 				return
 			}
 			ctx.Session().SetFlash("msg", "Invalid credentials")
@@ -38,7 +39,7 @@ func registerAction(ctx *iris2.Context) {
 		} else {
 			models.Handle().Create(&user)
 			ctx.Session().SetFlash("msg", "Account created, please log-in now")
-			ctx.Redirect("/login")
+			ctx.Redirect(config.Get().BaseURI + "login")
 			return
 		}
 	}
@@ -47,5 +48,5 @@ func registerAction(ctx *iris2.Context) {
 
 func logoutAction(ctx *iris2.Context) {
 	ctx.Session().Clear()
-	ctx.Redirect("/")
+	ctx.Redirect(config.Get().BaseURI)
 }

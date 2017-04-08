@@ -13,6 +13,7 @@ type Config struct {
 	ConcurrentBuilds uint
 	BuildDir         string
 	ListeningURI     string
+	BaseURI          string
 }
 
 var cfg Config
@@ -55,6 +56,7 @@ func Load(fname string) {
 	cfg.ConcurrentBuilds = getUintDefault(c, "build", "parallel", 5)
 	cfg.BuildDir = getStringDefault(c, "build", "work_dir", "./ci-build")
 	cfg.ListeningURI = getStringDefault(c, "http", "listen_uri", ":8081")
+	cfg.BaseURI = getStringDefault(c, "http", "base_uri", "/")
 }
 
 // Get retrieves the configuration structure

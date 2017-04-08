@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/go-iris2/iris2"
+	"github.com/rikvdh/ci/lib/config"
 )
 
 type authMiddleware struct{}
@@ -10,7 +11,7 @@ func (m authMiddleware) Serve(ctx *iris2.Context) {
 	if ctx.Session().GetString("authenticated") == "true" {
 		ctx.Next()
 	} else {
-		ctx.Redirect("/login")
+		ctx.Redirect(config.Get().BaseURI + "login")
 	}
 }
 

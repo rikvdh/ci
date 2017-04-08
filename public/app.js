@@ -18,7 +18,7 @@ function timeSince(date) {
 }
 
 $(function() {
-	ws = new ReconnectingWebSocket("ws://" + location.host + "/ws");
+	ws = new ReconnectingWebSocket("ws://" + location.host + $('#baseUri').val() + "ws");
 	ws.onmessage = function(e) {
 		var d = JSON.parse(e.data);
 		if (typeof d.running == "undefined" || d.running.length == 0) {

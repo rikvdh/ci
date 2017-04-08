@@ -4,8 +4,8 @@
 	<div class="col-sm-12 build build-{{ $item.Status }}">
 		<div class="col-sm-8">
 			<span class="glyphicon glyphicon-{{ $item.Status }}"></span>
-			<a href="/build/{{ $item.ID }}">{{ $item.Uri }}</a>
-			<a href="/deletebuild/{{$item.ID }}">[delete]</a>
+			<a href="{{baseUri}}build/{{ $item.ID }}">{{ $item.Uri }}</a>
+			<a href="{{baseUri}}deletebuild/{{$item.ID }}">[delete]</a>
 		</div>
 		<div class="col-sm-4">
 			{{ $item.StatusTime }}

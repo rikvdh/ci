@@ -8,8 +8,8 @@
 
   <title>CI - {{ .Page }}</title>
 
-  <link rel="stylesheet" type="text/css" href="/public/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="/public/prism.css">
+  <link rel="stylesheet" type="text/css" href="{{baseUri}}public/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="{{baseUri}}public/prism.css">
 
   <style type="text/css">
   body {
@@ -96,9 +96,9 @@
     </div>
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li><a href="/">Home</a></li>
-        <li><a href="/addbuild">Add build</a></li>
-        <li><a href="/logout">Logout</a></li>
+        <li><a href="{{baseUri}}">Home</a></li>
+        <li><a href="{{baseUri}}addbuild">Add build</a></li>
+        <li><a href="{{baseUri}}logout">Logout</a></li>
       </ul>
     </div>
   </div>
@@ -120,7 +120,7 @@
         <div class="col-sm-12">
           <span class="glyphicon glyphicon-##STATUS##"></span>
           Build ###JOBID##<br />
-          <a href="/job/##JOBID##">Commit ##COMMIT##</a><br />
+          <a href="{{baseUri}}job/##JOBID##">Commit ##COMMIT##</a><br />
           <span class="time-block" data-id="##START##">##SINCE##</span>
         </div>
       </div>
@@ -128,11 +128,12 @@
   </div>
 </div>
 
-<script src="/public/jquery-3.1.1.min.js"></script>
-<script src="/public/reconnecting-websocket.min.js"></script>
-<script src="/public/json2.js"></script>
-<script src="/public/prism.js"></script>
-<script src="/public/app.js"></script>
+<script src="{{baseUri}}public/jquery-3.1.1.min.js"></script>
+<script src="{{baseUri}}public/reconnecting-websocket.min.js"></script>
+<script src="{{baseUri}}public/json2.js"></script>
+<script src="{{baseUri}}public/prism.js"></script>
+<script src="{{baseUri}}public/app.js"></script>
+<input type="hidden" value="{{baseUri}}" id="baseUri" name="baseUri" />
 </body>
 
 </html>

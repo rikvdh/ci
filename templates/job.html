@@ -4,7 +4,10 @@ pre, code {
 }
 </style>
 
-<h2><a href="/build/{{ .Job.Build.ID }}">{{ .Job.Build.Uri }}</a> &raquo; <a href="/branch/{{ .Job.Branch.ID }}">{{ .Job.Branch.Name }}</a> &raquo; Job #{{ .Job.ID }}</h2>
+<h2>
+	<a href="{{baseUri}}build/{{ .Job.Build.ID }}">{{ .Job.Build.Uri }}</a> &raquo;
+	<a href="{{baseUri}}branch/{{ .Job.Branch.ID }}">{{ .Job.Branch.Name }}</a> &raquo;
+	Job #{{ .Job.ID }}</h2>
 
 	<div class="col-sm-12">
 		<div class="col-sm-12 build build-{{ .Job.Status }}">
