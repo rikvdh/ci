@@ -90,6 +90,7 @@ func waitForJob(f *os.File, cli *client.Client, job *models.Job, cfg *buildcfg.C
 	} else {
 		handleArtifacts(f, job, cfg)
 	}
+	os.RemoveAll(job.BuildDir)
 	runningJobs--
 	buildEvent <- runningJobs
 	cli.Close()
