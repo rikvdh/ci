@@ -42,7 +42,6 @@ func copyFile(src, dst string) (err error) {
 }
 
 func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
-	var artifacts []models.Artifact
 	artifactDir := filepath.Join(buildDir, "artifacts", strconv.Itoa(int(job.ID)))
 	if len(cfg.Addons.Artifacts.Paths) > 0 {
 		os.Mkdir(artifactDir, 0755)
