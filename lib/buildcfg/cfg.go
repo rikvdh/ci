@@ -35,6 +35,10 @@ type Config struct {
 	Script        multiString
 }
 
+func isValidCommand(cmd string) bool {
+	return !strings.Contains(cmd, "goveralls")
+}
+
 // GetScript returns the build script for building the project
 func (c *Config) GetScript(f *os.File) {
 	f.WriteString(`#!/bin/sh
@@ -51,16 +55,24 @@ set -xe
 	f.WriteString("\n")
 
 	for _, s := range c.Setup.V {
-		f.WriteString(s + "\n")
+		if isValidCommand(s) {
+			f.WriteString(s + "\n")
+		}
 	}
 	for _, s := range c.BeforeInstall.V {
-		f.WriteString(s + "\n")
+		if isValidCommand(s) {
+			f.WriteString(s + "\n")
+		}
 	}
 	for _, s := range c.Install.V {
-		f.WriteString(s + "\n")
+		if isValidCommand(s) {
+			f.WriteString(s + "\n")
+		}
 	}
 	for _, s := range c.Script.V {
-		f.WriteString(s + "\n")
+		if isValidCommand(s) {
+			f.WriteString(s + "\n")
+		}
 	}
 	f.WriteString("\nset +x\necho \"$(date) Build ended\"\n")
 	f.Close()
