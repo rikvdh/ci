@@ -51,8 +51,8 @@ $(function() {
 				tpl = tpl.replace(/##JOBID##/g, value.ID);
 				tpl = tpl.replace(/##COMMIT##/g, value.Reference.substring(0, 7));
 				tpl = tpl.replace(/##STATUS##/g, value.Status);
-				tpl = tpl.replace(/##START##/g, value.Start);
-				tpl = tpl.replace(/##SINCE##/g, timeSince(new Date(value.Start)));
+				tpl = tpl.replace(/##START##/g, value.CreatedAt);
+				tpl = tpl.replace(/##SINCE##/g, timeSince(new Date(value.CreatedAt)));
 				ret += tpl;
 			});
 			$('#buildqueue').html(ret)
