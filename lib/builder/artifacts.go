@@ -67,12 +67,10 @@ func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
 			fi := strings.Replace(file, job.BuildDir+"/", "", 1)
 			artifactFile := filepath.Join(artifactDir, fi)
 			copyFile(file, artifactFile)
-			artifacts = append(artifacts, models.Artifact{FilePath: fi, JobID: job.ID})
+			models.Handle().Create(&models.Artifact{FilePath: fi, JobID: job.ID})
 			fmt.Fprintf(f, "Archiving file: %s\n", fi)
 		}
 	}
-	if len(artifacts) > 0 {
-		models.Handle().Create(&artifacts)
-	}
+
 	job.SetStatus(models.StatusPassed)
 }
