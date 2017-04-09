@@ -100,12 +100,17 @@ func Start() {
 	v.Layout("layout.html")
 	v.Funcs(map[string]interface{}{
 		"timeago": func(value interface{}) string {
-			var s string
+			s := ""
 			switch v := value.(type) {
 			case time.Time:
-				s, _ = timeago.TimeAgoFromNowWithTime(v)
+				if v.Year() >= 2016 {
+					s, _ = timeago.TimeAgoFromNowWithTime(v)
+				}
 			case string:
-				s, _ = timeago.TimeAgoFromNowWithString(time.RFC3339Nano, v)
+				t, _ := time.Parse(time.RFC3339Nano, v)
+				if t.Year() >= 2016 {
+					s, _ = timeago.TimeAgoFromNowWithString(time.RFC3339Nano, v)
+				}
 			default:
 				s = fmt.Sprintf("Unknown type: %T", v)
 			}
