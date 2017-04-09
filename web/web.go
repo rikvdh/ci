@@ -60,7 +60,7 @@ func getJobAction(ctx *iris2.Context) {
 		ctx.Redirect(ctx.Referer())
 		return
 	}
-	models.Handle().Preload("Branch").Preload("Build").Where("id = ?", id).First(&item)
+	models.Handle().Preload("Branch").Preload("Build").Preload("Artifacts").Where("id = ?", id).First(&item)
 
 	item.SetStatusTime()
 

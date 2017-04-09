@@ -7,20 +7,28 @@ pre, code {
 <h2>
 	<a href="{{.baseUri}}build/{{ .Job.Build.ID }}">{{ .Job.Build.Uri }}</a> &raquo;
 	<a href="{{.baseUri}}branch/{{ .Job.Branch.ID }}">{{ .Job.Branch.Name }}</a> &raquo;
-	Job #{{ .Job.ID }}</h2>
+	Job #{{ .Job.ID }}
+</h2>
 
-	<div class="col-sm-12">
-		<div class="col-sm-12 build build-{{ .Job.Status }}">
-			<div class="col-sm-8">
-				<span class="glyphicon glyphicon-{{ .Job.Status }}"></span>
-				Commit {{ .Job.Reference }}<br />
-				<small>{{ .Job.Message }}</small>
-			</div>
-			<div class="col-sm-4">
-				{{ .Job.StatusTime }}
-			</div>
+<div class="col-sm-12">
+	<div class="col-sm-12 build build-{{ .Job.Status }}">
+		<div class="col-sm-8">
+			<span class="glyphicon glyphicon-{{ .Job.Status }}"></span>
+			Commit {{ .Job.Reference }}<br />
+			<small>{{ .Job.Message }}</small>
+		</div>
+		<div class="col-sm-4">
+			{{ .Job.StatusTime }}
+		</div>
+		<div class="col-xs-12">
+			<ul>
+				{{ range $i, $artifact := .Job.Artifacts }}
+				<li>{{$artifact.FilePath}}</li>
+				{{ end }}
+			</ul>
 		</div>
 	</div>
-	<div class="col-sm-12">
-			<pre class="line-numbers data-line" id="L"><code class="language-cli">{{ .Log }}</code></pre>
-	</div>
+</div>
+<div class="col-sm-12">
+		<pre class="line-numbers data-line" id="L"><code class="language-cli">{{ .Log }}</code></pre>
+</div>

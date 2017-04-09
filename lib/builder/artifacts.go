@@ -9,6 +9,7 @@ import (
 
 	"github.com/rikvdh/ci/lib/buildcfg"
 	"github.com/rikvdh/ci/models"
+	"strings"
 )
 
 // copyFile copies the contents of the file named src to the file named
@@ -41,31 +42,35 @@ func copyFile(src, dst string) (err error) {
 }
 
 func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
+	var artifacts []models.Artifact
 	artifactDir := filepath.Join(buildDir, "artifacts", strconv.Itoa(int(job.ID)))
 	if len(cfg.Addons.Artifacts.Paths) > 0 {
 		os.Mkdir(artifactDir, 0755)
 	}
 
-	for _, artifacts := range cfg.Addons.Artifacts.Paths {
-		paths, err := filepath.Glob(filepath.Join(job.BuildDir, artifacts))
+	for _, artifactsPath := range cfg.Addons.Artifacts.Paths {
+		paths, err := filepath.Glob(filepath.Join(job.BuildDir, artifactsPath))
 		if err != nil {
 			fmt.Fprintf(f, "Error searching for artifacts: %v\n", err)
 			job.SetStatus(models.StatusFailed, "Missing artifacts")
 			return
 		}
 
-		fmt.Println(filepath.Join(job.BuildDir, artifacts))
+		fmt.Println(filepath.Join(job.BuildDir, artifactsPath))
 		if len(paths) == 0 {
-			fmt.Fprintf(f, "Expected artifacts at %s, found none\n", artifacts)
-			job.SetStatus(models.StatusFailed, "Missing artifacts at "+artifacts)
+			fmt.Fprintf(f, "Expected artifacts at %s, found none\n", artifactsPath)
+			job.SetStatus(models.StatusFailed, "Missing artifacts at "+artifactsPath)
 			return
 		}
 
 		for _, file := range paths {
-			artifactFile := filepath.Join(artifactDir, file)
+			fi := strings.Replace(file, job.BuildDir, "", 1)
+			artifactFile := filepath.Join(artifactDir, fi)
 			copyFile(file, artifactFile)
-			fmt.Fprintf(f, "Archiving file: %s\n", file)
+			artifacts = append(artifacts, models.Artifact{FilePath: fi, JobID: job.ID})
+			fmt.Fprintf(f, "Archiving file: %s\n", fi)
 		}
 	}
+	models.Handle().Save(artifacts)
 	job.SetStatus(models.StatusPassed)
 }

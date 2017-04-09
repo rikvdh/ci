@@ -44,7 +44,8 @@ func startJob(f *os.File, job models.Job) {
 	fmt.Fprintf(f, "starting build job %d\n", job.ID)
 	job.BuildDir = buildDir + "/" + randomString(16)
 	job.Start = time.Now()
-	job.SetStatus(models.StatusBusy)
+	// We keep the status to new, because the container doesnt exist yet
+	job.SetStatus(models.StatusNew)
 
 	tag, err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, job.BuildDir)
 	if err != nil {

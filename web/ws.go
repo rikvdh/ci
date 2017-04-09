@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
+type BuildList struct {
+	Running []models.Job `json:"running"`
+	Queue   []models.Job `json:"queue"`
+}
+
 func getBuildList() []byte {
-	var msg struct {
-		Running []models.Job `json:"running"`
-		Queue   []models.Job `json:"queue"`
-	}
+	var msg BuildList
 
 	models.Handle().Where("status = ?", models.StatusBusy).Order("start DESC").Find(&msg.Running)
 	models.Handle().Where("status = ?", models.StatusNew).Order("start DESC").Find(&msg.Queue)
