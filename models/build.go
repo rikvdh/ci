@@ -26,15 +26,16 @@ func (b *Build) UpdateStatus() {
 	if len(branches) > 0 {
 		status = StatusPassed
 		for _, branch := range branches {
+			if branch.Status == StatusBusy || branch.Status == StatusNew {
+				status = branch.Status
+				time = branch.StatusTime
+			}
 			if status == StatusPassed {
 				if time.Sub(branch.StatusTime).Seconds() < 0.0 {
 					time = branch.StatusTime
 				}
 
-				if branch.Status == StatusBusy || branch.Status == StatusNew {
-					status = branch.Status
-					time = branch.StatusTime
-				} else if branch.Status == StatusError || branch.Status == StatusFailed {
+				if branch.Status == StatusError || branch.Status == StatusFailed {
 					status = branch.Status
 					time = branch.StatusTime
 				}
