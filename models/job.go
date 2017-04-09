@@ -46,21 +46,16 @@ func (j *Job) StoreTag(tag string) {
 
 func (j *Job) SetStatus(status string, message ...string) error {
 	t := time.Now()
-	final := false
-
 	j.Status = status
 
 	// Error, failed and passed are final statusses, add the end-time
 	if status == StatusError || status == StatusFailed || status == StatusPassed {
-		final = true
 		j.End = t
 	}
 	if len(message) == 1 {
 		j.Message = message[0]
 	}
 	err := Handle().Save(j).Error
-	if final && err == nil {
-		UpdateBranchStatus(j.BranchID, status, t)
-	}
+	UpdateBranchStatus(j.BranchID, status, t)
 	return err
 }
