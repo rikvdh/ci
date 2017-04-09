@@ -64,7 +64,7 @@ func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
 		}
 
 		for _, file := range paths {
-			fi := strings.Replace(file, job.BuildDir, "", 1)
+			fi := strings.Replace(file, job.BuildDir+"/", "", 1)
 			artifactFile := filepath.Join(artifactDir, fi)
 			copyFile(file, artifactFile)
 			artifacts = append(artifacts, models.Artifact{FilePath: fi, JobID: job.ID})
