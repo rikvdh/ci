@@ -71,6 +71,8 @@ func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
 			fmt.Fprintf(f, "Archiving file: %s\n", fi)
 		}
 	}
-	models.Handle().Save(artifacts)
+	if len(artifacts) > 0 {
+		models.Handle().Save(&artifacts)
+	}
 	job.SetStatus(models.StatusPassed)
 }
