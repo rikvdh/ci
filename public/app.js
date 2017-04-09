@@ -27,8 +27,8 @@ $(function() {
 	ws.onmessage = function(e) {
 		var d = JSON.parse(e.data);
 		if (typeof d.running == "undefined" || d.running.length == 0) {
-			$("#nobuilds").show()
-			$("#buildlist").hide()
+			$("#nobuilds").show();
+			$("#buildlist").hide();
 		} else {
 			var ret = ""
 			$.each(d.running, function( index, value ){
@@ -40,11 +40,14 @@ $(function() {
 				tpl = tpl.replace(/##SINCE##/g, timeSince(new Date(value.Start)));
 				ret += tpl;
 			});
-			$('#buildlist').html(ret)
-			$("#nobuilds").hide()
-			$("#buildlist").show()
+			$('#buildlist').html(ret);
+			$("#nobuilds").hide();
+			$("#buildlist").show();
 		}
-		if (typeof d.queue == "undefined" || d.queue.length > 0) {
+		if (typeof d.queue == "undefined" || d.queue.length == 0) {
+			$("#noqueue").show();
+			$("#buildqueue").hide();
+		} else {
 			var ret = ""
 			$.each(d.queue, function( index, value ){
 				tpl = $('#buildtemplate').html()
@@ -55,7 +58,9 @@ $(function() {
 				tpl = tpl.replace(/##SINCE##/g, timeSince(new Date(value.CreatedAt)));
 				ret += tpl;
 			});
-			$('#buildqueue').html(ret)
+			$('#noqueue').hide();
+			$('#buildqueue').html(ret);
+			$('#buildqueue').show();
 		}
 	}
 	ws.onopen = function() {
