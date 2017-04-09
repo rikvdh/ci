@@ -1,9 +1,10 @@
 package builder
 
 import (
-	"code.gitea.io/git"
 	"fmt"
 	"os"
+
+	"code.gitea.io/git"
 )
 
 func cloneRepo(f *os.File, uri, branch, reference, dir string) (string, error) {

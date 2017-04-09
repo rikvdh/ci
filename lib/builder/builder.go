@@ -73,19 +73,13 @@ func startJob(f *os.File, job models.Job) {
 	job.Container = containerID
 	job.SetStatus(models.StatusBusy)
 
-	go func() {
-		ok := waitForJob(f, cli, &job)
-		if ok {
-			handleArtifacts(f, &job, &cfg)
-		}
-	}()
+	go waitForJob(f, cli, &job, &cfg)
 	runningJobs++
 	buildEvent <- runningJobs
 }
 
-func waitForJob(f *os.File, cli *client.Client, job *models.Job) (ok bool) {
+func waitForJob(f *os.File, cli *client.Client, job *models.Job, cfg *buildcfg.Config) {
 	logrus.Infof("Wait for job %d", job.ID)
-	ok = false
 	models.Handle().First(&job, job.ID)
 	code, err := readContainer(f, cli, job.Container)
 	if err != nil {
@@ -93,12 +87,11 @@ func waitForJob(f *os.File, cli *client.Client, job *models.Job) (ok bool) {
 	} else if code != 0 {
 		job.SetStatus(models.StatusFailed, fmt.Sprintf("build failed with code: %d", code))
 	} else {
-		ok = true
+		handleArtifacts(f, job, cfg)
 	}
 	runningJobs--
 	buildEvent <- runningJobs
 	cli.Close()
-	return
 }
 
 func GetEventChannel() *chan uint {
@@ -118,12 +111,7 @@ func retakeRunningJobs() {
 		defer f.Close()
 
 		cli := getClient()
-		go func() {
-			ok := waitForJob(f, cli, &job)
-			if ok {
-				job.SetStatus(models.StatusPassed)
-			}
-		}()
+		go waitForJob(f, cli, &job, nil)
 		runningJobs++
 	}
 }

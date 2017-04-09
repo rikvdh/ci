@@ -14,6 +14,7 @@ func Handle() *gorm.DB {
 	return dbHandle
 }
 
+// Init initializes the database and auto-migrates the database tables
 func Init() {
 	var err error
 	dbHandle, err = gorm.Open(config.Get().Dbtype, config.Get().DbConnString)
@@ -25,4 +26,5 @@ func Init() {
 	dbHandle.AutoMigrate(&Job{})
 	dbHandle.AutoMigrate(&Build{})
 	dbHandle.AutoMigrate(&Branch{})
+	dbHandle.AutoMigrate(&Artifact{})
 }

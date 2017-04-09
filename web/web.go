@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/ararog/timeago"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
@@ -77,7 +79,6 @@ func homeAction(ctx *iris2.Context) {
 	models.Handle().Order("updated_at DESC").Find(&builds)
 	for k := range builds {
 		builds[k].Uri = cleanReponame(builds[k].Uri)
-		builds[k].FetchLatestStatus()
 	}
 	ctx.MustRender("home.html", iris2.Map{"Page": "Home", "Builds": builds})
 }
@@ -94,8 +95,25 @@ func Start() {
 		Expires:        2 * time.Hour,
 		SessionStorage: file.New("./tmp"),
 	}))
-	http.Adapt(view.HTML("./templates", ".html"))
-	http.Layout("layout.html")
+
+	v := view.HTML("./templates", ".html")
+	v.Layout("layout.html")
+	v.Funcs(map[string]interface{}{
+		"timeago": func(value interface{}) string {
+			var s string
+			switch v := value.(type) {
+			case time.Time:
+				s, _ = timeago.TimeAgoFromNowWithTime(v)
+			case string:
+				s, _ = timeago.TimeAgoFromNowWithString(time.RFC3339Nano, v)
+			default:
+				s = fmt.Sprintf("Unknown type: %T", v)
+			}
+
+			return s
+		},
+	})
+	http.Adapt(v)
 	http.StaticWeb("/public", "./public")
 
 	http.BeforeRender(beforeRender)

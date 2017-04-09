@@ -25,16 +25,9 @@ type Job struct {
 	BuildID uint `gorm:"index"`
 
 	StatusTime string `gorm:"-"`
-}
 
-const (
-	StatusUnknown = "unknown"
-	StatusNew     = "new"
-	StatusBusy    = "busy"
-	StatusFailed  = "failed"
-	StatusPassed  = "passed"
-	StatusError   = "error"
-)
+	Artifacts []Artifact
+}
 
 func (j *Job) SetStatusTime() {
 	if j.Start.IsZero() {
@@ -52,14 +45,22 @@ func (j *Job) StoreTag(tag string) {
 }
 
 func (j *Job) SetStatus(status string, message ...string) error {
+	t := time.Now()
+	final := false
+
 	j.Status = status
 
 	// Error, failed and passed are final statusses, add the end-time
 	if status == StatusError || status == StatusFailed || status == StatusPassed {
-		j.End = time.Now()
+		final = true
+		j.End = t
 	}
 	if len(message) == 1 {
 		j.Message = message[0]
 	}
-	return Handle().Save(j).Error
+	err := Handle().Save(j).Error
+	if final && err == nil {
+		UpdateBranchStatus(j.BranchID, status, t)
+	}
+	return err
 }

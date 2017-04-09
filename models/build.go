@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/ararog/timeago"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Build struct {
@@ -13,21 +13,39 @@ type Build struct {
 	Jobs     []Job
 	Branches []Branch
 
-	Status     string `gorm:"-"`
-	StatusTime string `gorm:"-"`
+	Status     string
+	StatusTime time.Time
 }
 
-func (b *Build) FetchLatestStatus() {
-	j := Job{}
-	dbHandle.Where("build_id = ?", b.ID).Order("updated_at DESC").First(&j)
-	if j.ID == 0 {
-		b.Status = "unknown"
-	}
-	b.Status = j.Status
+func (b *Build) UpdateStatus() {
+	var branches []Branch
+	var status string
+	var time time.Time
 
-	if j.UpdatedAt.IsZero() {
-		b.StatusTime = "n/a"
+	dbHandle.Where("build_id = ?", b.ID).Find(&branches)
+	if len(branches) > 0 {
+		status = StatusPassed
+		for _, branch := range branches {
+			if status == StatusPassed {
+				if time.Sub(branch.StatusTime).Seconds() < 0.0 {
+					time = branch.StatusTime
+				}
+
+				if branch.Status == StatusBusy || branch.Status == StatusNew {
+					status = branch.Status
+					time = branch.StatusTime
+				} else if branch.Status == StatusError || branch.Status == StatusFailed {
+					status = branch.Status
+					time = branch.StatusTime
+				}
+			}
+		}
 	} else {
-		b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
+		status = StatusUnknown
+		time = b.CreatedAt
 	}
+
+	b.Status = status
+	b.StatusTime = time
+	dbHandle.Save(b)
 }

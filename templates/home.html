@@ -9,7 +9,7 @@
 			<a href="{{$baseUri}}deletebuild/{{$item.ID }}">[delete]</a>
 		</div>
 		<div class="col-sm-4">
-			{{ $item.StatusTime }}
+			{{ timeago $item.StatusTime }}
 		</div>
 	</div>
 {{ end }}

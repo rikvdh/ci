@@ -1,14 +1,14 @@
 package builder
 
 import (
-	"os"
-
 	"fmt"
-	"github.com/rikvdh/ci/lib/buildcfg"
-	"github.com/rikvdh/ci/models"
 	"io"
+	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/rikvdh/ci/lib/buildcfg"
+	"github.com/rikvdh/ci/models"
 )
 
 // copyFile copies the contents of the file named src to the file named

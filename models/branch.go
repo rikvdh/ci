@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/ararog/timeago"
+	//"github.com/ararog/timeago"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Branch struct {
@@ -16,20 +17,23 @@ type Branch struct {
 
 	Jobs []Job
 
-	Status     string `gorm:"-"`
-	StatusTime string `gorm:"-"`
+	Status     string
+	StatusTime time.Time
 }
 
-func (b *Branch) FetchLatestStatus() {
-	j := Job{}
-	dbHandle.Where("build_id = ? AND branch_id = ?", b.BuildID, b.ID).Order("updated_at DESC").First(&j)
-	if j.ID == 0 {
-		b.Status = "unknown"
+func (b *Branch) UpdateStatus(s string, t time.Time) {
+	b.Status = s
+	b.StatusTime = t
+	dbHandle.Save(b)
+	if b.Build.ID > 0 {
+		b.Build.UpdateStatus()
 	}
-	b.Status = j.Status
-	if j.UpdatedAt.IsZero() {
-		b.StatusTime = "n/a"
-	} else {
-		b.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.UpdatedAt)
+}
+
+func UpdateBranchStatus(branchId uint, s string, t time.Time) {
+	b := Branch{}
+	dbHandle.Preload("Build").Where("id = ?", branchId).First(&b)
+	if b.ID > 0 {
+		b.UpdateStatus(s, t)
 	}
 }

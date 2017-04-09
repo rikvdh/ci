@@ -53,7 +53,6 @@ func getBuildAction(ctx *iris2.Context) {
 
 	for k := range item.Branches {
 		item.Branches[k].LastReference = item.Branches[k].LastReference[:7]
-		item.Branches[k].FetchLatestStatus()
 	}
 
 	ctx.MustRender("build.html", iris2.Map{"Page": "Build " + item.Uri, "Build": item})

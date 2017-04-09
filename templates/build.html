@@ -9,7 +9,7 @@
 			Commit {{ $item.LastReference }}
 		</div>
 		<div class="col-sm-4">
-			{{ $item.StatusTime }}<br />
+			{{ timeago $item.StatusTime }}<br />
 			<a href="#" class="build-branch" data-id="{{ $item.ID }}" title="Build branch">
 				<span class="glyphicon glyphicon-chevron-right"></span>
 			</a>
