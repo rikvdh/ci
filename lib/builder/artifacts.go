@@ -72,7 +72,7 @@ func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
 		}
 	}
 	if len(artifacts) > 0 {
-		models.Handle().Save(&artifacts)
+		models.Handle().Create(&artifacts)
 	}
 	job.SetStatus(models.StatusPassed)
 }
