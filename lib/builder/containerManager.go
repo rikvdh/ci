@@ -74,6 +74,10 @@ func startContainer(cli *client.Client, cfg *buildcfg.Config, path string) (stri
 }
 
 func readContainer(f *os.File, cli *client.Client, id string) (int, error) {
+	if len(id) == 0 {
+		return 0, fmt.Errorf("container '%s' is invalid", id)
+	}
+
 	out, err := cli.ContainerAttach(ctx, id, types.ContainerAttachOptions{Stdout: true, Stderr: true, Stream: true, Logs: true})
 	if err != nil {
 		return 0, fmt.Errorf("container attach: %v", err)

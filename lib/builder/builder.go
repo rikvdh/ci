@@ -59,6 +59,7 @@ func startJob(f *os.File, job models.Job) {
 	cli := getClient()
 	if err := fetchImage(f, cli, &cfg); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("fetch image failed: %v", err))
+		return
 	}
 
 	fmt.Fprintf(f, "starting container...\n")
@@ -83,6 +84,7 @@ func startJob(f *os.File, job models.Job) {
 }
 
 func waitForJob(f *os.File, cli *client.Client, job *models.Job) (ok bool) {
+	logrus.Infof("Wait for job %d", job.ID)
 	ok = false
 	models.Handle().First(&job, job.ID)
 	code, err := readContainer(f, cli, job.Container)
@@ -107,14 +109,21 @@ func retakeRunningJobs() {
 	var jobs []models.Job
 	models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusBusy).Find(&jobs)
 	for _, job := range jobs {
+		logrus.Infof("Retake job %d", job.ID)
 		f, err := os.OpenFile(buildDir+"/"+strconv.Itoa(int(job.ID))+".log", os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			job.SetStatus(models.StatusError, fmt.Sprintf("reopening logfile failed: %v", err))
 			continue
 		}
 		defer f.Close()
+
 		cli := getClient()
-		go waitForJob(f, cli, &job)
+		go func() {
+			ok := waitForJob(f, cli, &job)
+			if ok {
+				job.SetStatus(models.StatusPassed)
+			}
+		}()
 		runningJobs++
 	}
 }
