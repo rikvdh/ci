@@ -30,8 +30,7 @@ func cloneRepo(f *os.File, uri, branch, reference, dir string) (string, error) {
 
 	if _, err := os.Stat(dir + "/.gitmodules"); err == nil {
 		fmt.Fprintf(f, "update submodules... ")
-		cmd := git.NewCommand("submodule")
-		cmd.AddArguments("update", "--init", "--recursive")
+		cmd := git.NewCommand("submodule", "update", "--init", "--recursive")
 		_, err := cmd.RunInDir(dir)
 		if err != nil {
 			return "", err
@@ -39,10 +38,6 @@ func cloneRepo(f *os.File, uri, branch, reference, dir string) (string, error) {
 		fmt.Fprint(f, "done\n")
 	}
 
-	// git describe --exact-match --tags
-	tagcmd := git.NewCommand("describe")
-	tagcmd.AddArguments("--exact-match", "--tags")
-	tag, err := tagcmd.RunInDir(dir)
-
-	return tag, nil
+	tagcmd := git.NewCommand("describe", "--exact-match", "--tags")
+	return tagcmd.RunInDir(dir)
 }

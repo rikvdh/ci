@@ -1,12 +1,13 @@
 package web
 
 import (
+	"fmt"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/ararog/timeago"
 	"github.com/go-iris2/iris2"
@@ -44,33 +45,35 @@ func getBranchAction(ctx *iris2.Context) {
 	}).Preload("Build").Where("id = ?", id).First(&item)
 
 	item.Build.Uri = cleanReponame(item.Build.Uri)
-	for k := range item.Jobs {
-		item.Jobs[k].Reference = item.Jobs[k].Reference[:7]
-		item.Jobs[k].SetStatusTime()
-	}
+	var artifacts []models.Artifact
+	if len(item.Jobs) > 0 {
+		models.Handle().Where("job_id = ?", item.Jobs[0].ID).Find(&artifacts)
 
-	ctx.MustRender("branch.html", iris2.Map{"Page": "Branch " + item.Name + "(" + item.Build.Uri + ")", "Branch": item})
+		for k := range item.Jobs {
+			item.Jobs[k].Reference = item.Jobs[k].Reference[:7]
+			item.Jobs[k].SetStatusTime()
+		}
+	}
+	ctx.MustRender("branch.html", iris2.Map{
+		"Page":      "Branch " + item.Name + " (" + item.Build.Uri + ")",
+		"Branch":    item,
+		"Artifacts": artifacts})
 }
 
 func getJobAction(ctx *iris2.Context) {
-	item := models.Job{}
-	id, err := ctx.ParamInt("id")
+	item, err := models.GetJobById(ctx.ParamInt("id"))
 	if err != nil {
 		ctx.Session().SetFlash("msg", "Invalid ID")
 		ctx.Redirect(ctx.Referer())
 		return
 	}
-	models.Handle().Preload("Branch").Preload("Build").Preload("Artifacts").Where("id = ?", id).First(&item)
 
-	item.SetStatusTime()
-
-	log := builder.GetLog(&item)
 	item.Build.Uri = cleanReponame(item.Build.Uri)
 	item.Reference = item.Reference[:7]
 	ctx.MustRender("job.html", iris2.Map{
-		"Page": "Job #" + strconv.Itoa(int(item.ID)) + "(" + item.Build.Uri + ")",
+		"Page": "Job #" + strconv.Itoa(int(item.ID)) + " (" + item.Build.Uri + ")",
 		"Job":  item,
-		"Log":  log})
+		"Log":  builder.GetLog(item)})
 }
 
 func homeAction(ctx *iris2.Context) {
@@ -86,6 +89,23 @@ func homeAction(ctx *iris2.Context) {
 func beforeRender(ctx *iris2.Context, m iris2.Map) iris2.Map {
 	m["baseUri"] = config.Get().BaseURI
 	return m
+}
+
+func getArtifact(ctx *iris2.Context) {
+	item := models.Artifact{}
+	id, err := ctx.ParamInt("id")
+	if err != nil {
+		ctx.Session().SetFlash("msg", "Invalid ID")
+		ctx.Redirect(ctx.Referer())
+		return
+	}
+	models.Handle().Where("id = ?", id).First(&item)
+
+	fp := filepath.Join(config.Get().BuildDir, "artifacts", strconv.Itoa(int(item.JobID)), item.FilePath)
+	if err := ctx.ServeFile(fp, false); err != nil {
+		fmt.Printf("Serving artifact failed")
+		ctx.Redirect(ctx.Referer())
+	}
 }
 
 func Start() {
@@ -141,6 +161,7 @@ func Start() {
 		party.Get("/build/:id", getBuildAction)
 		party.Get("/branch/:id", getBranchAction)
 		party.Get("/job/:id", getJobAction)
+		party.Get("/artifact/:id", getArtifact)
 	}
 
 	logrus.Infof("Listening on %s", config.Get().ListeningURI)

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/ararog/timeago"
 	"github.com/jinzhu/gorm"
 	"time"
@@ -58,4 +59,19 @@ func (j *Job) SetStatus(status string, message ...string) error {
 	err := Handle().Save(j).Error
 	UpdateBranchStatus(j.BranchID, status, t)
 	return err
+}
+
+func GetJobById(jobID int, err error) (*Job, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	item := Job{}
+	dbHandle.Preload("Branch").Preload("Build").Preload("Artifacts").Where("id = ?", jobID).First(&item)
+
+	if item.ID > 0 {
+		item.SetStatusTime()
+		return &item, nil
+	}
+	return nil, fmt.Errorf("error finding job %d", jobID)
 }

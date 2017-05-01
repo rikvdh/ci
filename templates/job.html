@@ -10,6 +10,7 @@ pre, code {
 	Job #{{ .Job.ID }}
 </h2>
 
+{{$baseUri := .baseUri}}
 <div class="col-sm-12">
 	<div class="col-sm-12 build build-{{ .Job.Status }}">
 		<div class="col-sm-8">
@@ -23,7 +24,7 @@ pre, code {
 		<div class="col-xs-12">
 			<ul>
 				{{ range $i, $artifact := .Job.Artifacts }}
-				<li>{{$artifact.FilePath}}</li>
+					<li><a href="{{$baseUri}}artifact/{{$artifact.ID}}">{{$artifact.FilePath}}</a></li>
 				{{ end }}
 			</ul>
 		</div>
