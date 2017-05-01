@@ -23,6 +23,7 @@ type Config struct {
 	GoImportPath string `yaml:"go_import_path"`
 	Addons       struct {
 		Apt struct {
+			Sources  []string `yaml:",flow"`
 			Packages []string `yaml:",flow"`
 		}
 		Artifacts struct {
@@ -49,6 +50,29 @@ echo "$(date) Build started"
 set -xe
 
 `)
+	ppaInstalled := false
+	needUpdate := false
+	for _, alias := range c.Addons.Apt.Sources {
+		source, key := translateRepo(alias)
+		if strings.Contains(source, "ppa:") {
+			if !ppaInstalled {
+				ppaInstalled = true
+				f.WriteString("apt-get install -yq --no-install-suggests --no-install-recommends --force-yes software-properties-common python-software-properties\n")
+			}
+			needUpdate = true
+			f.WriteString("apt-add-repository -y " + source + "\n")
+		} else if len(source) > 0 {
+			f.WriteString("echo '" + source + "' > /etc/apt/sources.list.d/" + alias + ".list\n")
+			needUpdate = true
+		}
+		if len(key) > 0 {
+			//c.Setup.V = append(c.Setup.V, "")
+		}
+	}
+
+	if needUpdate {
+		f.WriteString("apt-get -yq update\n")
+	}
 
 	f.WriteString("apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ")
 	f.WriteString(strings.Join(c.Addons.Apt.Packages, " "))
@@ -114,6 +138,7 @@ func Read(cfgDir, remote string) Config {
 	if c.Language != "" {
 		loadLangConfig(c.Language, remote, &c)
 	}
+
 	c.Addons.Apt.Packages = append(c.Addons.Apt.Packages, "sudo", "git-core")
 	return c
 }
