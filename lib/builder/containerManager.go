@@ -46,8 +46,8 @@ func startContainer(cli *client.Client, cfg *buildcfg.Config, path string) (stri
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
 	cfg.GetScript(f)
+	f.Close()
 
 	buildDir := "/build"
 	if len(cfg.GoImportPath) > 0 {

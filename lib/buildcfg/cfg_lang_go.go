@@ -28,7 +28,7 @@ func loadGoConfig(remote string, c *Config) {
 		"export PATH=$PATH:/build/bin",
 		"cd /build/src/" + c.GoImportPath,
 	}
-	c.Setup.V = append(setup, c.Setup.V...)
+	c.globalBefore = append(c.globalBefore, setup...)
 
 	if len(c.Script.V) == 0 && len(c.Install.V) == 0 {
 		c.Script.V = []string{
