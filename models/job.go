@@ -61,7 +61,7 @@ func (j *Job) SetStatus(status string, message ...string) error {
 	return err
 }
 
-func GetJobById(jobID int, err error) (*Job, error) {
+func GetJobByID(jobID int, err error) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}

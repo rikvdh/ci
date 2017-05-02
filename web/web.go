@@ -14,7 +14,6 @@ import (
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
 	"github.com/go-iris2/iris2/adaptors/view"
-	"github.com/jinzhu/gorm"
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/config"
@@ -24,25 +23,21 @@ import (
 func cleanReponame(remote string) string {
 	if strings.Contains(remote, ":") && strings.Contains(remote, "@") {
 		rem := remote[strings.Index(remote, "@")+1:]
-		return strings.Replace(strings.Replace(rem, ".git", "", 1), ":", "/", 1)
+		return strings.Replace(strings.TrimRight(rem, ".git"), ":", "/", 1)
 	}
 	u, err := url.Parse(remote)
 	if err != nil {
 		return remote
 	}
-	return u.Hostname() + strings.Replace(u.Path, ".git", "", 1)
+	return u.Hostname() + strings.TrimRight(u.Path, ".git")
 }
 
 func getBranchAction(ctx *iris2.Context) {
-	item := models.Branch{}
-	id, err := ctx.ParamInt("id")
+	item, err := models.GetBranchByID(ctx.ParamInt("id"))
 	if err != nil {
 		ctx.Redirect(ctx.Referer())
 		return
 	}
-	models.Handle().Preload("Jobs", func(db *gorm.DB) *gorm.DB {
-		return db.Order("jobs.id DESC")
-	}).Preload("Build").Where("id = ?", id).First(&item)
 
 	item.Build.Uri = cleanReponame(item.Build.Uri)
 	var artifacts []models.Artifact
@@ -61,7 +56,7 @@ func getBranchAction(ctx *iris2.Context) {
 }
 
 func getJobAction(ctx *iris2.Context) {
-	item, err := models.GetJobById(ctx.ParamInt("id"))
+	item, err := models.GetJobByID(ctx.ParamInt("id"))
 	if err != nil {
 		ctx.Session().SetFlash("msg", "Invalid ID")
 		ctx.Redirect(ctx.Referer())
