@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rikvdh/ci/lib/buildcfg"
 	"golang.org/x/net/context"
+	"io"
 )
 
 var ctx context.Context = context.Background()
@@ -23,7 +24,7 @@ func getClient() *client.Client {
 	return cli
 }
 
-func fetchImage(f *os.File, cli *client.Client, cfg *buildcfg.Config) error {
+func fetchImage(f io.Writer, cli *client.Client, cfg *buildcfg.Config) error {
 	fmt.Fprintf(f, "fetching docker image: %s\n", cfg.DockerImage)
 	rc, err := cli.ImagePull(ctx, cfg.DockerImage, types.ImagePullOptions{})
 	if err != nil {
@@ -73,7 +74,7 @@ func startContainer(cli *client.Client, cfg *buildcfg.Config, path string) (stri
 	return resp.ID, nil
 }
 
-func readContainer(f *os.File, cli *client.Client, id string) (int, error) {
+func readContainer(f io.Writer, cli *client.Client, id string) (int, error) {
 	if len(id) == 0 {
 		return 0, fmt.Errorf("container '%s' is invalid", id)
 	}

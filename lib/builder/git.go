@@ -5,9 +5,11 @@ import (
 	"os"
 
 	"code.gitea.io/git"
+	"io"
+	"strings"
 )
 
-func cloneRepo(f *os.File, uri, branch, reference, dir string) (string, error) {
+func cloneRepo(f io.Writer, uri, branch, reference, dir string) (string, error) {
 	fmt.Fprintf(f, "Cloning %s, branch %s... ", uri, branch)
 
 	err := git.Clone(uri, dir, git.CloneRepoOptions{
@@ -40,4 +42,13 @@ func cloneRepo(f *os.File, uri, branch, reference, dir string) (string, error) {
 
 	tagcmd := git.NewCommand("describe", "--exact-match", "--tags")
 	return tagcmd.RunInDir(dir)
+}
+
+func getLastCommitMessage(dir string) string {
+	c := git.NewCommand("log", "-1", "--pretty=%B")
+	s, err := c.RunInDir(dir)
+	if err == nil {
+		return strings.Replace(s, "\n", " ", -1)
+	}
+	return ""
 }

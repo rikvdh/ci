@@ -41,7 +41,7 @@ func copyFile(src, dst string) (err error) {
 	return
 }
 
-func handleArtifacts(f *os.File, job *models.Job, cfg *buildcfg.Config) {
+func handleArtifacts(f io.Writer, job *models.Job, cfg *buildcfg.Config) {
 	artifactDir := filepath.Join(buildDir, "artifacts", strconv.Itoa(int(job.ID)))
 	if cfg != nil {
 		if len(cfg.Addons.Artifacts.Paths) > 0 {

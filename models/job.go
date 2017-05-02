@@ -10,14 +10,15 @@ import (
 type Job struct {
 	gorm.Model
 
-	Reference string
-	Status    string
-	Container string
-	Message   string
-	Start     time.Time
-	End       time.Time
-	Tag       string
-	BuildDir  string
+	Reference     string
+	CommitMessage string
+	Status        string
+	Container     string
+	Message       string
+	Start         time.Time
+	End           time.Time
+	Tag           string
+	BuildDir      string
 
 	Branch   Branch
 	BranchID uint `gorm:"index"`
@@ -40,8 +41,9 @@ func (j *Job) SetStatusTime() {
 	}
 }
 
-func (j *Job) StoreTag(tag string) {
+func (j *Job) StoreMeta(tag, commitMsg string) {
 	j.Tag = tag
+	j.CommitMessage = commitMsg
 	Handle().Save(j)
 }
 

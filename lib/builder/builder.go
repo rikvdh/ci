@@ -14,6 +14,7 @@ import (
 	"github.com/rikvdh/ci/lib/buildcfg"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
+	"io"
 )
 
 var runningJobs uint
@@ -39,8 +40,7 @@ func GetLog(job *models.Job) string {
 	return string(d)
 }
 
-// Returns boolean true when the job is started
-func startJob(f *os.File, job models.Job) {
+func startJob(f io.Writer, job models.Job) {
 	fmt.Fprintf(f, "starting build job %d\n", job.ID)
 	job.BuildDir = buildDir + "/" + randomString(16)
 	job.Start = time.Now()
@@ -52,7 +52,7 @@ func startJob(f *os.File, job models.Job) {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
 		return
 	}
-	job.StoreTag(tag)
+	job.StoreMeta(tag, getLastCommitMessage(job.BuildDir))
 
 	fmt.Fprintf(f, "reading configuration\n")
 	cfg := buildcfg.Read(job.BuildDir, job.Build.Uri)
@@ -79,7 +79,7 @@ func startJob(f *os.File, job models.Job) {
 	buildEvent <- runningJobs
 }
 
-func waitForJob(f *os.File, cli *client.Client, job *models.Job, cfg *buildcfg.Config) {
+func waitForJob(f io.Writer, cli *client.Client, job *models.Job, cfg *buildcfg.Config) {
 	logrus.Infof("Wait for job %d", job.ID)
 	models.Handle().First(&job, job.ID)
 	code, err := readContainer(f, cli, job.Container)
