@@ -17,9 +17,8 @@ import (
 	"io"
 )
 
-var runningJobs uint
+var runningJobs *jobCounter
 var buildDir string
-var buildEvent chan uint
 
 func randomString(strlen int) string {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -74,8 +73,7 @@ func startJob(f io.Writer, job models.Job) {
 	job.SetStatus(models.StatusBusy)
 
 	go waitForJob(f, cli, &job, &cfg)
-	runningJobs++
-	buildEvent <- runningJobs
+	runningJobs.Increment()
 }
 
 func waitForJob(f io.Writer, cli *client.Client, job *models.Job, cfg *buildcfg.Config) {
@@ -90,13 +88,12 @@ func waitForJob(f io.Writer, cli *client.Client, job *models.Job, cfg *buildcfg.
 		handleArtifacts(f, job, cfg)
 	}
 	os.RemoveAll(job.BuildDir)
-	runningJobs--
-	buildEvent <- runningJobs
+	runningJobs.Decrement()
 	cli.Close()
 }
 
-func GetEventChannel() *chan uint {
-	return &buildEvent
+func GetEventChannel() <-chan uint {
+	return runningJobs.GetEventChannel()
 }
 
 func retakeRunningJobs() {
@@ -113,13 +110,14 @@ func retakeRunningJobs() {
 
 		cli := getClient()
 		go waitForJob(f, cli, &job, nil)
-		runningJobs++
+		runningJobs.Increment()
 	}
 }
 
 // Run is the build-runner, it starts containers and runs up to 5 parallel builds
 func Run() {
-	buildEvent = make(chan uint)
+	runningJobs = newJobCounter()
+
 	buildDir, _ = filepath.Abs(config.Get().BuildDir)
 	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
 		os.Mkdir(buildDir, 0755)
@@ -128,7 +126,7 @@ func Run() {
 	retakeRunningJobs()
 
 	for {
-		if runningJobs < config.Get().ConcurrentBuilds {
+		if runningJobs.CanStartJob() {
 			var job models.Job
 
 			models.Handle().Preload("Branch").Preload("Build").Where("status = ?", models.StatusNew).First(&job)

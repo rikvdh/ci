@@ -43,7 +43,7 @@ func startWs(app *iris2.Framework) {
 	go func() {
 		ch := builder.GetEventChannel()
 		for {
-			<-*ch
+			<-ch
 
 			data := getBuildList()
 			logrus.Infof("Emit new build-list via websocket to %d connections", len(conns))
