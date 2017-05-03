@@ -21,15 +21,16 @@ import (
 )
 
 func cleanReponame(remote string) string {
+	remote = strings.Replace(remote, ".git", "", -1)
 	if strings.Contains(remote, ":") && strings.Contains(remote, "@") {
 		rem := remote[strings.Index(remote, "@")+1:]
-		return strings.Replace(strings.TrimRight(rem, ".git"), ":", "/", 1)
+		return strings.Replace(rem, ":", "/", 1)
 	}
 	u, err := url.Parse(remote)
 	if err != nil {
 		return remote
 	}
-	return u.Hostname() + strings.TrimRight(u.Path, ".git")
+	return u.Hostname() + u.Path
 }
 
 func getBranchAction(ctx *iris2.Context) {
