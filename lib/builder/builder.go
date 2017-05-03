@@ -47,12 +47,11 @@ func startJob(f io.Writer, job models.Job) {
 	// We keep the status to new, because the container doesnt exist yet
 	job.SetStatus(models.StatusNew)
 
-	tag, err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, job.BuildDir)
-	if err != nil {
+	if err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, job.BuildDir); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
 		return
 	}
-	job.StoreMeta(tag, getLastCommitMessage(job.BuildDir))
+	job.StoreMeta(getTag(job.BuildDir), getLastCommitMessage(job.BuildDir))
 
 	fmt.Fprintf(f, "reading configuration\n")
 	cfg := buildcfg.Read(job.BuildDir, job.Build.Uri)

@@ -2,14 +2,14 @@ package builder
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"code.gitea.io/git"
-	"io"
-	"strings"
 )
 
-func cloneRepo(f io.Writer, uri, branch, reference, dir string) (string, error) {
+func cloneRepo(f io.Writer, uri, branch, reference, dir string) error {
 	fmt.Fprintf(f, "Cloning %s, branch %s... ", uri, branch)
 
 	err := git.Clone(uri, dir, git.CloneRepoOptions{
@@ -20,13 +20,14 @@ func cloneRepo(f io.Writer, uri, branch, reference, dir string) (string, error) 
 	fmt.Fprintf(f, "done\n")
 
 	if err != nil {
-		return "", fmt.Errorf("git clone failed: %v", err)
+		return fmt.Errorf("git clone failed: %v", err)
 	}
 
 	fmt.Fprintf(f, "checkout reference: %s... ", reference)
 	err = git.Checkout(dir, git.CheckoutOptions{Branch: reference})
 	if err != nil {
-		return "", err
+		fmt.Fprintf(f, "failure\n")
+		return err
 	}
 	fmt.Fprintf(f, "done\n")
 
@@ -35,13 +36,22 @@ func cloneRepo(f io.Writer, uri, branch, reference, dir string) (string, error) 
 		cmd := git.NewCommand("submodule", "update", "--init", "--recursive")
 		_, err := cmd.RunInDir(dir)
 		if err != nil {
-			return "", err
+			fmt.Fprintf(f, "failure\n")
+			return err
 		}
 		fmt.Fprint(f, "done\n")
 	}
 
+	return nil
+}
+
+func getTag(dir string) string {
 	tagcmd := git.NewCommand("describe", "--exact-match", "--tags")
-	return tagcmd.RunInDir(dir)
+	tag, err := tagcmd.RunInDir(dir)
+	if err == nil {
+		return strings.TrimSpace(tag)
+	}
+	return ""
 }
 
 func getLastCommitMessage(dir string) string {
