@@ -61,7 +61,7 @@ func isValidCommand(cmd string) bool {
 }
 
 func writeFunc(f io.Writer, name string, script []string) {
-	io.WriteString(f, name+"() (\nset +ve\n")
+	io.WriteString(f, name+"() (\nset +xe\n")
 	for _, s := range script {
 		if isValidCommand(s) {
 			io.WriteString(f, s+"\n")

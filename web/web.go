@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/ararog/timeago"
+	"github.com/dustin/go-humanize"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
@@ -66,10 +66,12 @@ func getJobAction(ctx *iris2.Context) {
 
 	item.Build.Uri = cleanReponame(item.Build.Uri)
 	item.Reference = item.Reference[:7]
+	log := builder.GetLog(item)
 	ctx.MustRender("job.html", iris2.Map{
-		"Page": "Job #" + strconv.Itoa(int(item.ID)) + " (" + item.Build.Uri + ")",
-		"Job":  item,
-		"Log":  builder.GetLog(item)})
+		"Page":   "Job #" + strconv.Itoa(int(item.ID)) + " (" + item.Build.Uri + ")",
+		"Job":    item,
+		"Log":    log,
+		"LogLen": len(log)})
 }
 
 func homeAction(ctx *iris2.Context) {
@@ -120,17 +122,19 @@ func Start() {
 			switch v := value.(type) {
 			case time.Time:
 				if v.Year() >= 2016 {
-					s, _ = timeago.TimeAgoFromNowWithTime(v)
+					s = humanize.Time(v)
 				}
 			case string:
 				t, _ := time.Parse(time.RFC3339Nano, v)
 				if t.Year() >= 2016 {
-					s, _ = timeago.TimeAgoFromNowWithString(time.RFC3339Nano, v)
+					t, err := time.Parse(time.RFC3339Nano, v)
+					if err != nil {
+						s = humanize.Time(t)
+					}
 				}
 			default:
 				s = fmt.Sprintf("Unknown type: %T", v)
 			}
-
 			return s
 		},
 	})

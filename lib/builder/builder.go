@@ -2,19 +2,21 @@ package builder
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"io"
+
+	"io/ioutil"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/client"
 	"github.com/rikvdh/ci/lib/buildcfg"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
-	"io"
 )
 
 var runningJobs *jobCounter
@@ -30,13 +32,29 @@ func randomString(strlen int) string {
 	return string(result)
 }
 
-// GetLog retrieves a log for a job
-func GetLog(job *models.Job) string {
-	d, err := ioutil.ReadFile(buildDir + "/" + strconv.Itoa(int(job.ID)) + ".log")
+// GetLogFromPos retrieves a log for a job from pos
+func GetLogFromPos(job *models.Job, pos int64) string {
+	logfile := buildDir + "/" + strconv.Itoa(int(job.ID)) + ".log"
+	f, err := os.Open(logfile)
 	if err != nil {
+		logrus.Warnf("Error opening logfile: %s, %v", logfile, err)
 		return ""
 	}
-	return string(d)
+	defer f.Close()
+
+	f.Seek(pos, io.SeekStart)
+
+	d, err := ioutil.ReadAll(f)
+	if err == nil {
+		return string(d)
+	}
+	logrus.Warnf("Error on readall: %s, %v", logfile, err)
+	return ""
+}
+
+// GetLog retrieves a log for a job
+func GetLog(job *models.Job) string {
+	return GetLogFromPos(job, 0)
 }
 
 func startJob(f io.Writer, job models.Job) {

@@ -11,6 +11,7 @@ func (m authMiddleware) Serve(ctx *iris2.Context) {
 	if ctx.Session().GetString("authenticated") == "true" {
 		ctx.Next()
 	} else {
+		ctx.Session().Set("redirectUri", ctx.Request.RequestURI)
 		ctx.Redirect(config.Get().BaseURI + "login")
 	}
 }

@@ -8,9 +8,9 @@ import (
 type User struct {
 	gorm.Model
 
-	Username      string `form:"username"`
+	Username      string
 	Password      string
-	PasswordPlain string `gorm:"-" form:"password"`
+	PasswordPlain string `gorm:"-"`
 }
 
 func (u *User) BeforeSave(scope *gorm.Scope) (err error) {

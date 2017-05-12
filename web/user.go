@@ -16,7 +16,11 @@ func loginAction(ctx *iris2.Context) {
 			models.Handle().Where(user).First(&user)
 			if user.ID > 0 && user.ValidPassword() {
 				ctx.Session().Set("authenticated", "true")
-				ctx.Redirect(config.Get().BaseURI)
+				redirectURI := ctx.Session().GetString("redirectUri")
+				if len(redirectURI) == 0 {
+					redirectURI = config.Get().BaseURI
+				}
+				ctx.Redirect(redirectURI)
 				return
 			}
 			ctx.Session().SetFlash("msg", "Invalid credentials")

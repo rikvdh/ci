@@ -2,9 +2,10 @@ package models
 
 import (
 	"fmt"
-	"github.com/ararog/timeago"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/dustin/go-humanize"
+	"github.com/jinzhu/gorm"
 )
 
 type Job struct {
@@ -19,25 +20,24 @@ type Job struct {
 	End           time.Time
 	Tag           string
 	BuildDir      string
-
-	Branch   Branch
-	BranchID uint `gorm:"index"`
-
-	Build   Build
-	BuildID uint `gorm:"index"`
-
-	StatusTime string `gorm:"-"`
-
-	Artifacts []Artifact
+	Branch        Branch
+	BranchID      uint `gorm:"index"`
+	Build         Build
+	BuildID       uint   `gorm:"index"`
+	StatusTime    string `gorm:"-"`
+	Duration      string `gorm:"-"`
+	Artifacts     []Artifact
 }
 
 func (j *Job) SetStatusTime() {
 	if j.Start.IsZero() {
 		j.StatusTime = "not started"
 	} else if j.End.IsZero() {
-		j.StatusTime, _ = timeago.TimeAgoFromNowWithTime(j.Start)
+		j.Duration = "not finished"
+		j.StatusTime = humanize.Time(j.Start)
 	} else {
-		j.StatusTime = j.End.Sub(j.Start).String()
+		j.StatusTime = humanize.Time(j.End)
+		j.Duration = humanize.RelTime(j.End, j.Start, "", "")
 	}
 }
 

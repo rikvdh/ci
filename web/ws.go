@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"sync"
 
+	"time"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/websocket"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
-	"time"
 )
 
 type BuildList struct {
@@ -26,6 +27,13 @@ func getBuildList() []byte {
 
 	data, _ := json.Marshal(msg)
 	return data
+}
+
+type jsonData struct {
+	Action          string `json:"action"`
+	ID              int    `json:"id,omitempty"`
+	CurrentPosition int64  `json:"current_position,omitempty"`
+	Data            string `json:"data,omitempty"`
 }
 
 func startWs(app *iris2.Framework) {
@@ -72,18 +80,32 @@ func startWs(app *iris2.Framework) {
 		c.EmitMessage(getBuildList())
 
 		c.OnMessage(func(d []byte) {
-			var req struct {
-				Action string
-				ID     int `json:",omitempty"`
-			}
+			var req jsonData
 			json.Unmarshal(d, &req)
-			if req.Action == "build" {
+			switch req.Action {
+			case "build":
 				item := models.Branch{}
 				models.Handle().Preload("Build").Where("id = ?", req.ID).First(&item)
 				if item.ID > 0 {
 					indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
 				} else {
 					logrus.Warnf("error, branch not found: %v", req)
+				}
+			case "logpos":
+				item := models.Job{}
+				models.Handle().First(&item, req.ID)
+				if item.ID > 0 {
+					buf := builder.GetLogFromPos(&item, req.CurrentPosition)
+					rep := jsonData{
+						Action:          req.Action,
+						ID:              req.ID,
+						Data:            buf,
+						CurrentPosition: int64(len(buf)) + req.CurrentPosition,
+					}
+					rb, _ := json.Marshal(rep)
+					c.EmitMessage(rb)
+				} else {
+					logrus.Warnf("logreader: %v", req)
 				}
 			}
 		})

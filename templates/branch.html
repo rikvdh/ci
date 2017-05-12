@@ -8,6 +8,9 @@
 {{$baseUri := .baseUri}}
 
 <ul>
+	{{ if .Artifacts }}
+		Artifacts:
+	{{ end }}
 	{{ range $i, $artifact := .Artifacts }}
 		<li><a href="{{$baseUri}}artifact/{{$artifact.ID}}">{{$artifact.FilePath}}</a></li>
 	{{ end }}
@@ -21,7 +24,8 @@
 			<small>{{ $item.Message }}</small>
 		</div>
 		<div class="col-sm-4">
-			{{ $item.StatusTime }}
+			{{ $item.StatusTime }}<br />
+			{{ $item.Duration }}
 			{{ if $item.Tag }}
 				<div class="badge-default badge">{{ $item.Tag }}</div>
 			{{ end }}

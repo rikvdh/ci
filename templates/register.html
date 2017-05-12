@@ -22,12 +22,12 @@
         {{ end }}
 
         <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" name="username" class="form-control" placeholder="Username" value="{{ .user.Username }}">
+          <label for="Username">Username</label>
+          <input type="text" name="Username" class="form-control" placeholder="Username" value="{{ .user.Username }}">
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" name="password" class="form-control" placeholder="Password" value="{{ .user.PasswordPlain }}">
+          <label for="PasswordPlain">Password</label>
+          <input type="password" name="PasswordPlain" class="form-control" placeholder="Password" value="{{ .user.PasswordPlain }}">
         </div>
         <input type="submit" value="Login" class="btn btn-default" /><br />
         <a href="{{.baseUri}}login">Login to your account</a>
