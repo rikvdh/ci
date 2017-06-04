@@ -1,6 +1,8 @@
 package web
 
 import (
+	"strings"
+
 	"github.com/go-iris2/iris2"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/models"
@@ -17,8 +19,9 @@ func loginAction(ctx *iris2.Context) {
 			if user.ID > 0 && user.ValidPassword() {
 				ctx.Session().Set("authenticated", "true")
 				redirectURI := ctx.Session().GetString("redirectUri")
-				if len(redirectURI) == 0 {
-					redirectURI = config.Get().BaseURI
+				bu := config.Get().BaseURI
+				if !strings.HasPrefix(redirectURI, bu) {
+					redirectURI = bu + redirectURI
 				}
 				ctx.Redirect(redirectURI)
 				return
