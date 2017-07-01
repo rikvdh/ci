@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dustin/go-humanize"
 	"github.com/jinzhu/gorm"
 )
@@ -76,4 +77,15 @@ func GetJobByID(jobID int, err error) (*Job, error) {
 		return &item, nil
 	}
 	return nil, fmt.Errorf("error finding job %d", jobID)
+}
+
+func ScheduleJob(buildID, branchID uint, ref string) error {
+	logrus.Infof("Scheduling job for build %d on branch %d", buildID, branchID)
+	job := Job{
+		BuildID:   buildID,
+		BranchID:  branchID,
+		Status:    StatusNew,
+		Reference: ref,
+	}
+	return dbHandle.Create(&job).Error
 }

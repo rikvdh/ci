@@ -1,7 +1,7 @@
 package indexer
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -10,15 +10,16 @@ import (
 	"github.com/rikvdh/ci/models"
 )
 
-const remoteName string = "rem"
-
 type Branch struct {
 	Hash string
 	Name string
 }
 
+// RemoteBranches returns a list of remote branches and their
+// commit hashes
 func RemoteBranches(repo string) ([]Branch, error) {
-	s, err := git.NewCommand("-c", "core.askpass=true", "ls-remote", "-h", repo).RunTimeout(time.Second * 5)
+	cmd := git.NewCommand("-c", "core.askpass=true", "ls-remote", "-h", repo)
+	s, err := cmd.RunTimeout(time.Second * 10)
 	if err != nil {
 		return nil, err
 	}
@@ -39,18 +40,7 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	if len(branches) > 0 {
 		return branches, nil
 	}
-	return nil, fmt.Errorf("no remote branches found")
-}
-
-func ScheduleJob(buildID, branchID uint, ref string) {
-	logrus.Infof("Scheduling job for build %d on branch %d", buildID, branchID)
-	job := models.Job{
-		BuildID:   buildID,
-		BranchID:  branchID,
-		Status:    models.StatusNew,
-		Reference: ref,
-	}
-	models.Handle().Create(&job)
+	return nil, errors.New("no remote branches found")
 }
 
 func checkBranch(buildID uint, branch Branch) {
@@ -60,13 +50,13 @@ func checkBranch(buildID uint, branch Branch) {
 	if dbBranch.ID > 0 && dbBranch.LastReference != branch.Hash {
 		dbBranch.LastReference = branch.Hash
 		models.Handle().Save(&dbBranch)
-		ScheduleJob(buildID, dbBranch.ID, branch.Hash)
+		models.ScheduleJob(buildID, dbBranch.ID, branch.Hash)
 	} else if dbBranch.ID == 0 {
 		dbBranch.Name = branch.Name
 		dbBranch.BuildID = buildID
 		dbBranch.LastReference = branch.Hash
 		models.Handle().Create(&dbBranch)
-		ScheduleJob(buildID, dbBranch.ID, branch.Hash)
+		models.ScheduleJob(buildID, dbBranch.ID, branch.Hash)
 	}
 }
 

@@ -10,7 +10,6 @@ import (
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/websocket"
 	"github.com/rikvdh/ci/lib/builder"
-	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
 )
 
@@ -87,7 +86,7 @@ func startWs(app *iris2.Framework) {
 				item := models.Branch{}
 				models.Handle().Preload("Build").Where("id = ?", req.ID).First(&item)
 				if item.ID > 0 {
-					indexer.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
+					models.ScheduleJob(item.Build.ID, item.ID, item.LastReference)
 				} else {
 					logrus.Warnf("error, branch not found: %v", req)
 				}
