@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/config"
 	"github.com/rikvdh/ci/lib/indexer"
@@ -8,7 +9,11 @@ import (
 	"github.com/rikvdh/ci/web"
 )
 
+var buildDate string
+var buildVersion = "dev"
+
 func main() {
+	logrus.Infof("rikvdh/ci started version %s (built at %s)", buildVersion, buildDate)
 	config.Load("ci.ini")
 	models.Init()
 

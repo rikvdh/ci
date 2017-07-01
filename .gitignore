@@ -3,3 +3,4 @@ tmp/*
 *.db
 ci-build
 *.ini
+coverage.txt
