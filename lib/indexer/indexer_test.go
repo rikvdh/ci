@@ -21,7 +21,7 @@ func TestRemoteBranchesNonExisting(t *testing.T) {
 }
 
 func TestRemoteBranchesExisting(t *testing.T) {
-	b, err := RemoteBranches("git@github.com:rikvdh/ci.git")
+	b, err := RemoteBranches("https://github.com/rikvdh/ci.git")
 	assert.Nil(t, err, "expected remote-branches to return no error")
 	assert.NotEmpty(t, b, "expected non-empty branch-list")
 	masterFound := false
