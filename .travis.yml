@@ -5,7 +5,7 @@ go:
   - tip
 
 script:
-  - make ci
+  - make all
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
