@@ -48,10 +48,7 @@ func startWs(app *iris2.Framework) {
 	conns := make(map[string]websocket.Connection)
 
 	go func() {
-		ch := builder.GetEventChannel()
-		for {
-			<-ch
-
+		for range builder.GetEventChannel() {
 			data := getBuildList()
 			logrus.Infof("Emit new build-list via websocket to %d connections", len(conns))
 			mu.RLock()
