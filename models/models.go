@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	// blank imports for database types
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/rikvdh/ci/lib/config"
@@ -15,11 +16,11 @@ func Handle() *gorm.DB {
 }
 
 // Init initializes the database and auto-migrates the database tables
-func Init() {
+func Init() error {
 	var err error
 	dbHandle, err = gorm.Open(config.Get().Dbtype, config.Get().DbConnString)
 	if err != nil {
-		panic("failed to connect database")
+		return err
 	}
 
 	dbHandle.AutoMigrate(&User{})
@@ -27,4 +28,5 @@ func Init() {
 	dbHandle.AutoMigrate(&Build{})
 	dbHandle.AutoMigrate(&Branch{})
 	dbHandle.AutoMigrate(&Artifact{})
+	return nil
 }

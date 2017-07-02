@@ -25,12 +25,12 @@ function logPosUpdater(obj) {
 }
 
 $(function() {
-	var wssUri = "ws://" + location.host + $('#baseUri').val() + "ws";
+	var wssURI = "ws://" + location.host + $('#baseURI').val() + "ws";
 	if (location.protocol === 'https:') {
-		wssUri = "wss://" + location.host + $('#baseUri').val() + "ws";
+		wssURI = "wss://" + location.host + $('#baseURI').val() + "ws";
 	}
 
-	ws = new ReconnectingWebSocket(wssUri);
+	ws = new ReconnectingWebSocket(wssURI);
 	ws.onmessage = function(e) {
 		var d = JSON.parse(e.data);
 		if (d.action == "logpos") {

@@ -15,7 +15,9 @@ var buildVersion = "dev"
 func main() {
 	logrus.Infof("rikvdh/ci started version %s (built at %s)", buildVersion, buildDate)
 	config.Load("ci.ini")
-	models.Init()
+	if err := models.Init(); err != nil {
+		logrus.Fatalf("model init failed: %v", err)
+	}
 
 	go indexer.Run()
 	go builder.Run()

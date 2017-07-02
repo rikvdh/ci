@@ -5,15 +5,15 @@ pre, code {
 </style>
 
 <h2>
-	<a href="{{.baseUri}}build/{{ .Job.Build.ID }}">{{ .Job.Build.Uri }}</a> &raquo;
-	<a href="{{.baseUri}}branch/{{ .Job.Branch.ID }}">{{ .Job.Branch.Name }}</a> &raquo;
+	<a href="{{.baseURI}}build/{{ .Job.Build.ID }}">{{ .Job.Build.URI }}</a> &raquo;
+	<a href="{{.baseURI}}branch/{{ .Job.Branch.ID }}">{{ .Job.Branch.Name }}</a> &raquo;
 	Job #{{ .Job.ID }}
 </h2>
 
 <input class="currentJobId" type="hidden" value="{{ .Job.ID }}" />
 <input class="currentLogPos" type="hidden" value="{{ .LogLen }}" />
 
-{{$baseUri := .baseUri}}
+{{$baseURI := .baseURI}}
 <div class="col-sm-12">
 	<div class="col-sm-12 build build-{{ .Job.Status }}">
 		<div class="col-sm-8">
@@ -31,7 +31,7 @@ pre, code {
 			{{ end }}
 			<ul>
 				{{ range $i, $artifact := .Job.Artifacts }}
-					<li><a href="{{$baseUri}}artifact/{{$artifact.ID}}">{{$artifact.FilePath}}</a></li>
+					<li><a href="{{$baseURI}}artifact/{{$artifact.ID}}">{{$artifact.FilePath}}</a></li>
 				{{ end }}
 			</ul>
 		</div>

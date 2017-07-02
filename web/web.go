@@ -40,7 +40,7 @@ func getBranchAction(ctx *iris2.Context) {
 		return
 	}
 
-	item.Build.Uri = cleanReponame(item.Build.Uri)
+	item.Build.URI = cleanReponame(item.Build.URI)
 	var artifacts []models.Artifact
 	if len(item.Jobs) > 0 {
 		models.Handle().Where("job_id = ?", item.Jobs[0].ID).Find(&artifacts)
@@ -51,7 +51,7 @@ func getBranchAction(ctx *iris2.Context) {
 		}
 	}
 	ctx.MustRender("branch.html", iris2.Map{
-		"Page":      "Branch " + item.Name + " (" + item.Build.Uri + ")",
+		"Page":      "Branch " + item.Name + " (" + item.Build.URI + ")",
 		"Branch":    item,
 		"Artifacts": artifacts})
 }
@@ -64,11 +64,11 @@ func getJobAction(ctx *iris2.Context) {
 		return
 	}
 
-	item.Build.Uri = cleanReponame(item.Build.Uri)
+	item.Build.URI = cleanReponame(item.Build.URI)
 	item.Reference = item.Reference[:7]
 	log := builder.GetLog(item)
 	ctx.MustRender("job.html", iris2.Map{
-		"Page":   "Job #" + strconv.Itoa(int(item.ID)) + " (" + item.Build.Uri + ")",
+		"Page":   "Job #" + strconv.Itoa(int(item.ID)) + " (" + item.Build.URI + ")",
 		"Job":    item,
 		"Log":    log,
 		"LogLen": len(log)})
@@ -79,13 +79,17 @@ func homeAction(ctx *iris2.Context) {
 
 	models.Handle().Order("updated_at DESC").Find(&builds)
 	for k := range builds {
-		builds[k].Uri = cleanReponame(builds[k].Uri)
+		builds[k].URI = cleanReponame(builds[k].URI)
 	}
 	ctx.MustRender("home.html", iris2.Map{"Page": "Home", "Builds": builds})
 }
 
 func beforeRender(ctx *iris2.Context, m iris2.Map) iris2.Map {
-	m["baseUri"] = config.Get().BaseURI
+	m["baseURI"] = config.Get().BaseURI
+	user, err := ctx.Session().GetUint("userID")
+	if err == nil {
+		m["userID"] = user
+	}
 	return m
 }
 
@@ -101,7 +105,7 @@ func getArtifact(ctx *iris2.Context) {
 
 	fp := filepath.Join(config.Get().BuildDir, "artifacts", strconv.Itoa(int(item.JobID)), item.FilePath)
 	if err := ctx.ServeFile(fp, false); err != nil {
-		fmt.Printf("Serving artifact failed")
+		logrus.Warnf("Serving artifact failed")
 		ctx.Redirect(ctx.Referer())
 	}
 }

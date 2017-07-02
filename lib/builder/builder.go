@@ -64,14 +64,14 @@ func startJob(f io.Writer, job models.Job) {
 	// We keep the status to new, because the container doesnt exist yet
 	job.SetStatus(models.StatusNew)
 
-	if err := cloneRepo(f, job.Build.Uri, job.Branch.Name, job.Reference, job.BuildDir); err != nil {
+	if err := cloneRepo(f, job.Build.URI, job.Branch.Name, job.Reference, job.BuildDir); err != nil {
 		job.SetStatus(models.StatusError, fmt.Sprintf("cloning repository failed: %v", err))
 		return
 	}
 	job.StoreMeta(getTag(job.BuildDir), getLastCommitMessage(job.BuildDir))
 
 	fmt.Fprintf(f, "reading configuration\n")
-	cfg := buildcfg.Read(job.BuildDir, job.Build.Uri)
+	cfg := buildcfg.Read(job.BuildDir, job.Build.URI)
 
 	cli := getClient()
 	if err := fetchImage(f, cli, &cfg); err != nil {
@@ -111,6 +111,13 @@ func waitForJob(f io.Writer, cli *client.Client, job *models.Job, cfg *buildcfg.
 }
 
 func GetEventChannel() <-chan uint {
+	logrus.Debugf("getting event channel")
+	for {
+		if runningJobs != nil {
+			break
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
 	return runningJobs.GetEventChannel()
 }
 

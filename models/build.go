@@ -1,20 +1,34 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"errors"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Build struct {
 	gorm.Model
 
-	Uri string `form:"uri"`
-
-	Jobs     []Job
-	Branches []Branch
-
+	URI        string `form:"uri"`
+	Personal   bool   `form:"personal"`
+	UserID     uint   `gorm:"index" form:"userID"`
+	User       User
+	Jobs       []Job
+	Branches   []Branch
 	Status     string
 	StatusTime time.Time
+}
+
+func (b *Build) IsValid() error {
+	if len(b.URI) == 0 {
+		return errors.New("missing repository URI")
+	}
+	build := Build{}
+	if dbHandle.Where("uri = ?", b.URI).First(&build); build.ID > 0 {
+		return errors.New("build with the provided URI already exists")
+	}
+	return nil
 }
 
 func (b *Build) UpdateStatus() {

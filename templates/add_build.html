@@ -6,7 +6,12 @@
   {{ end }}
   <div class="form-group">
     <label for="uri">Repository URI</label>
-    <input type="text" name="uri" class="form-control" placeholder="Repository URI" value="{{ .build.Uri }}">
+    <input type="text" name="uri" class="form-control" placeholder="Repository URI" value="{{ .build.URI }}" />
+  </div>
+  <div class="form-group">
+    <label for="uri">Personal build</label>
+    <input type="checkbox" name="personal" value="1" />
+    <input type="hidden" name="userID" value="{{ .userID }}" />
   </div>
   <button type="submit" class="btn btn-default">Submit</button>
 </form>

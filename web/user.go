@@ -18,6 +18,7 @@ func loginAction(ctx *iris2.Context) {
 			models.Handle().Where(user).First(&user)
 			if user.ID > 0 && user.ValidPassword() {
 				ctx.Session().Set("authenticated", "true")
+				ctx.Session().Set("userID", user.ID)
 				redirectURI := ctx.Session().GetString("redirectUri")
 				bu := config.Get().BaseURI
 				if !strings.HasPrefix(redirectURI, bu) {

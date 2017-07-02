@@ -1,8 +1,9 @@
 package builder
 
 import (
-	"github.com/rikvdh/ci/lib/config"
 	"sync"
+
+	"github.com/rikvdh/ci/lib/config"
 )
 
 type jobCounter struct {
@@ -47,5 +48,7 @@ func (j *jobCounter) publishEvent() {
 }
 
 func (j *jobCounter) GetEventChannel() <-chan uint {
+	j.mu.RLock()
+	defer j.mu.RUnlock()
 	return j.eventCh
 }

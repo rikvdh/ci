@@ -1,8 +1,7 @@
 package config
 
 import (
-	"fmt"
-
+	"github.com/Sirupsen/logrus"
 	"github.com/go-ini/ini"
 )
 
@@ -48,7 +47,7 @@ func getUintDefault(c *ini.File, sect, key string, def uint) uint {
 func Load(fname string) {
 	c, err := ini.LoadSources(ini.LoadOptions{AllowBooleanKeys: true}, fname)
 	if err != nil {
-		fmt.Println("problem loading ini-file:", err)
+		logrus.Warnf("problem loading ini-file: %v", err)
 	}
 
 	cfg.Dbtype = getStringDefault(c, "database", "type", "sqlite3")

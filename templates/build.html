@@ -1,11 +1,11 @@
-<h2>Build {{ .Build.Uri }}</h2>
+<h2>Build {{ .Build.URI }}</h2>
 
-{{$baseUri := .baseUri}}
+{{$baseURI := .baseURI}}
 {{ range $i, $item := .Build.Branches }}
 	<div class="col-sm-12 build build-{{ $item.Status }}">
 		<div class="col-sm-8">
 			<span class="glyphicon glyphicon-{{ $item.Status }}"></span>
-			<a href="{{$baseUri}}branch/{{ $item.ID }}">{{ $item.Name }}</a><br />
+			<a href="{{$baseURI}}branch/{{ $item.ID }}">{{ $item.Name }}</a><br />
 			Commit {{ $item.LastReference }}
 		</div>
 		<div class="col-sm-4">

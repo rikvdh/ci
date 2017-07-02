@@ -65,9 +65,9 @@ func Run() {
 		var builds []models.Build
 		models.Handle().Find(&builds)
 		for _, build := range builds {
-			branches, err := RemoteBranches(build.Uri)
+			branches, err := RemoteBranches(build.URI)
 			if err != nil {
-				logrus.Warnf("error reading branches from %s: %v", build.Uri, err)
+				logrus.Warnf("error reading branches from %s: %v", build.URI, err)
 			}
 			for _, branch := range branches {
 				checkBranch(build.ID, branch)
