@@ -4,15 +4,17 @@
 {{ range $i, $item := .Build.Branches }}
 	<div class="col-sm-12 build build-{{ $item.Status }} enabled-{{ $item.Enabled }}">
 		<div class="col-sm-8">
-			<span class="glyphicon glyphicon-{{ $item.Status }}"></span>
+			<span class="glyphicon glyphicon-{{ $item.Status }} glyphicon-enabled-{{ $item.Enabled }}"></span>
 			<a href="{{$baseURI}}branch/{{ $item.ID }}">{{ $item.Name }}</a><br />
 			Commit {{ $item.LastReference }}
 		</div>
 		<div class="col-sm-4">
 			{{ timeago $item.StatusTime }}<br />
-			<a href="#" class="build-branch" data-id="{{ $item.ID }}" title="Build branch">
-				<span class="glyphicon glyphicon-chevron-right"></span>
-			</a>
+			{{ if $item.Enabled }}
+				<a href="#" class="build-branch" data-id="{{ $item.ID }}" title="Build branch">
+					<span class="glyphicon glyphicon-chevron-right"></span>
+				</a>
+			{{ end }}
 		</div>
 	</div>
 {{ end }}
