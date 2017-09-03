@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/go-iris2/iris2"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
@@ -49,7 +50,9 @@ func getBuildAction(ctx *iris2.Context) {
 		ctx.Redirect(ctx.Referer())
 		return
 	}
-	models.Handle().Preload("Branches").Where("id = ?", id).First(&item)
+	models.Handle().Preload("Branches", func(db *gorm.DB) *gorm.DB {
+		return db.Order("branches.Enabled DESC, branches.status_time DESC")
+	}).Where("id = ?", id).First(&item)
 
 	item.URI = cleanReponame(item.URI)
 

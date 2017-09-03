@@ -19,7 +19,7 @@ type Branch struct {
 // commit hashes
 func RemoteBranches(repo string) ([]Branch, error) {
 	cmd := git.NewCommand("-c", "core.askpass=true", "ls-remote", "-h", repo)
-	s, err := cmd.RunTimeout(time.Second * 10)
+	s, err := cmd.RunTimeout(time.Second * 25)
 	if err != nil {
 		return nil, err
 	}
@@ -43,21 +43,26 @@ func RemoteBranches(repo string) ([]Branch, error) {
 	return nil, errors.New("no remote branches found")
 }
 
-func checkBranch(buildID uint, branch Branch) {
+func checkBranch(buildID uint, branch Branch) uint {
 	dbBranch := models.Branch{}
 	models.Handle().Where("name = ? AND build_id = ?", branch.Name, buildID).First(&dbBranch)
 
-	if dbBranch.ID > 0 && dbBranch.LastReference != branch.Hash {
-		dbBranch.LastReference = branch.Hash
-		models.Handle().Save(&dbBranch)
-		models.ScheduleJob(buildID, dbBranch.ID, branch.Hash)
+	if dbBranch.ID > 0 {
+		dbBranch.Enable()
+		if dbBranch.LastReference != branch.Hash {
+			dbBranch.LastReference = branch.Hash
+			models.Handle().Save(&dbBranch)
+			models.ScheduleJob(buildID, dbBranch.ID, branch.Hash)
+		}
 	} else if dbBranch.ID == 0 {
 		dbBranch.Name = branch.Name
 		dbBranch.BuildID = buildID
 		dbBranch.LastReference = branch.Hash
+		dbBranch.Enabled = true
 		models.Handle().Create(&dbBranch)
 		models.ScheduleJob(buildID, dbBranch.ID, branch.Hash)
 	}
+	return dbBranch.ID
 }
 
 func Run() {
@@ -69,8 +74,15 @@ func Run() {
 			if err != nil {
 				logrus.Warnf("error reading branches from %s: %v", build.URI, err)
 			}
+			var ids []uint
 			for _, branch := range branches {
-				checkBranch(build.ID, branch)
+				i := checkBranch(build.ID, branch)
+				ids = append(ids, i)
+			}
+			var oldBranches []models.Branch
+			models.Handle().Where("build_id = ? AND id not in(?)", build.ID, ids).Find(&oldBranches)
+			for _, b := range oldBranches {
+				b.Disable()
 			}
 		}
 		time.Sleep(time.Second * 5)

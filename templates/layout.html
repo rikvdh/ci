@@ -30,15 +30,6 @@
     content: "\e023";
     color: #edde3f;
   }
-  .build-unknown {
-    background: -webkit-linear-gradient(left,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
-    background: linear-gradient(to right,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
-  }
-  span.glyphicon-unknown:before {
-    content: "\e085";
-    color: #000;
-  }
-
   .build-passed {
     background: -webkit-linear-gradient(left,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
     background: linear-gradient(to right,#39aa56 0,#39aa56 10px,#fff 10px,#fff 100%) no-repeat;
@@ -58,6 +49,15 @@
   span.glyphicon-error:before{
     content: "\e101";
     color: #db4545;
+  }
+
+  .build-unknown, .enabled-false {
+    background: -webkit-linear-gradient(left,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
+    background: linear-gradient(to right,#CACECE 0,#CACECE 9px,#fff 10px,#fff 100%) no-repeat;
+  }
+  span.glyphicon-unknown:before, span.glyphicon-enabled-false {
+    content: "\e085";
+    color: #000;
   }
 
   .build {

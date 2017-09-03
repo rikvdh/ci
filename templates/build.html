@@ -2,7 +2,7 @@
 
 {{$baseURI := .baseURI}}
 {{ range $i, $item := .Build.Branches }}
-	<div class="col-sm-12 build build-{{ $item.Status }}">
+	<div class="col-sm-12 build build-{{ $item.Status }} enabled-{{ $item.Enabled }}">
 		<div class="col-sm-8">
 			<span class="glyphicon glyphicon-{{ $item.Status }}"></span>
 			<a href="{{$baseURI}}branch/{{ $item.ID }}">{{ $item.Name }}</a><br />

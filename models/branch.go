@@ -1,10 +1,10 @@
 package models
 
 import (
-	//"github.com/ararog/timeago"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Branch struct {
@@ -12,11 +12,11 @@ type Branch struct {
 
 	Name          string
 	LastReference string
+	Enabled       bool
 
 	Build   Build
 	BuildID uint `gorm:"index"`
-
-	Jobs []Job
+	Jobs    []Job
 
 	Status     string
 	StatusTime time.Time
@@ -29,6 +29,16 @@ func (b *Branch) UpdateStatus(s string, t time.Time) {
 	if b.Build.ID > 0 {
 		b.Build.UpdateStatus()
 	}
+}
+
+func (b *Branch) Disable() {
+	b.Enabled = false
+	dbHandle.Save(b)
+}
+
+func (b *Branch) Enable() {
+	b.Enabled = true
+	dbHandle.Save(b)
 }
 
 func UpdateBranchStatus(branchID uint, s string, t time.Time) {
