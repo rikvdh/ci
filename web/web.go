@@ -3,10 +3,13 @@ package web
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rikvdh/ci/internal/targzip"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/dustin/go-humanize"
@@ -93,6 +96,49 @@ func beforeRender(ctx *iris2.Context, m iris2.Map) iris2.Map {
 	return m
 }
 
+func getLatestArtifact(ctx *iris2.Context) {
+	item, err := models.GetBranchByID(ctx.ParamInt("id"))
+	if err != nil {
+		emitError(ctx, "branch not found", err)
+		return
+	}
+
+	if len(item.Jobs) == 0 {
+		emitError(ctx, "no jobs for branch", nil)
+		return
+	}
+
+	var artifacts []models.Artifact
+	models.Handle().Where("job_id = ?", item.Jobs[0].ID).Find(&artifacts)
+	if len(artifacts) == 0 {
+		emitError(ctx, "no artifacts for latest job", nil)
+		return
+	}
+
+	tgz, err := targzip.NewTempFile("")
+	if err != nil {
+		emitError(ctx, "failure creating tempfile", err)
+		return
+	}
+
+	for _, artifact := range artifacts {
+		fp := filepath.Join(config.Get().BuildDir, "artifacts", strconv.Itoa(int(artifact.JobID)), artifact.FilePath)
+		tgz.AddFile(fp, artifact.FilePath)
+	}
+	tgz.Close()
+
+	f, err := os.Open(tgz.Name())
+	if err != nil {
+		emitError(ctx, "opening tempfile failed", err)
+	}
+	defer func() { f.Close(); os.Remove(tgz.Name()) }()
+
+	if err := ctx.ServeContent(f, fmt.Sprintf("%d.tgz", item.ID), time.Now(), false); err != nil {
+		emitError(ctx, "serving artifact failed", err)
+		return
+	}
+}
+
 func getArtifact(ctx *iris2.Context) {
 	item := models.Artifact{}
 	id, err := ctx.ParamInt("id")
@@ -105,8 +151,8 @@ func getArtifact(ctx *iris2.Context) {
 
 	fp := filepath.Join(config.Get().BuildDir, "artifacts", strconv.Itoa(int(item.JobID)), item.FilePath)
 	if err := ctx.ServeFile(fp, false); err != nil {
-		logrus.Warnf("Serving artifact failed")
-		ctx.Redirect(ctx.Referer())
+		emitError(ctx, "serving artifact failed", err)
+		return
 	}
 }
 
@@ -144,6 +190,7 @@ func Start() {
 	})
 	http.Adapt(v)
 	http.StaticWeb("/public", "./public")
+	registerErrors(http)
 
 	http.BeforeRender(beforeRender)
 	http.Get("/login", loginAction)
@@ -166,6 +213,7 @@ func Start() {
 		party.Get("/branch/:id", getBranchAction)
 		party.Get("/job/:id", getJobAction)
 		party.Get("/artifact/:id", getArtifact)
+		party.Get("/latestartifact/:id", getLatestArtifact)
 	}
 
 	logrus.Infof("Listening on %s", config.Get().ListeningURI)

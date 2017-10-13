@@ -6,10 +6,10 @@
 	<span class="glyphicon glyphicon-chevron-right"></span></a><br />
 
 {{$baseURI := .baseURI}}
+{{ if .Artifacts }}
+Artifacts:
+{{ end }}
 <ul>
-	{{ if .Artifacts }}
-		Artifacts:
-	{{ end }}
 	{{ range $i, $artifact := .Artifacts }}
 		<li><a href="{{$baseURI}}artifact/{{$artifact.ID}}">{{$artifact.FilePath}}</a></li>
 	{{ end }}
