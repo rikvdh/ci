@@ -60,6 +60,7 @@ func GetBranchByID(branchID int, err error) (*Branch, error) {
 	}).Preload("Build").Where("id = ?", branchID).First(&item)
 
 	if item.ID > 0 {
+		item.Build.URI = cleanReponame(item.Build.URI)
 		return &item, nil
 	}
 	return nil, fmt.Errorf("error finding branch %d", branchID)

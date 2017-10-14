@@ -2,11 +2,9 @@ package web
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/rikvdh/ci/internal/targzip"
@@ -23,27 +21,28 @@ import (
 	"github.com/rikvdh/ci/models"
 )
 
-func cleanReponame(remote string) string {
-	remote = strings.Replace(remote, ".git", "", -1)
-	if strings.Contains(remote, ":") && strings.Contains(remote, "@") {
-		rem := remote[strings.Index(remote, "@")+1:]
-		return strings.Replace(rem, ":", "/", 1)
+func beforeRender(ctx *iris2.Context, m iris2.Map) iris2.Map {
+	m["baseURI"] = config.Get().BaseURI
+	user, err := ctx.Session().GetUint("userID")
+	if err == nil {
+		m["userID"] = user
 	}
-	u, err := url.Parse(remote)
-	if err != nil {
-		return remote
-	}
-	return u.Hostname() + u.Path
+	return m
 }
 
 func getBranchAction(ctx *iris2.Context) {
 	item, err := models.GetBranchByID(ctx.ParamInt("id"))
 	if err != nil {
-		ctx.Redirect(ctx.Referer())
+		emitError(ctx, "branch not found", err)
+		return
+	}
+	user, _ := ctx.Session().GetUint("userID")
+
+	if !((item.Build.Personal && item.Build.UserID == user) || !item.Build.Personal) {
+		emitError(ctx, "permission on this branch denied", nil)
 		return
 	}
 
-	item.Build.URI = cleanReponame(item.Build.URI)
 	var artifacts []models.Artifact
 	if len(item.Jobs) > 0 {
 		models.Handle().Where("job_id = ?", item.Jobs[0].ID).Find(&artifacts)
@@ -66,8 +65,6 @@ func getJobAction(ctx *iris2.Context) {
 		ctx.Redirect(ctx.Referer())
 		return
 	}
-
-	item.Build.URI = cleanReponame(item.Build.URI)
 	item.Reference = item.Reference[:7]
 	log := builder.GetLog(item)
 	ctx.MustRender("job.html", iris2.Map{
@@ -78,22 +75,12 @@ func getJobAction(ctx *iris2.Context) {
 }
 
 func homeAction(ctx *iris2.Context) {
-	var builds []models.Build
-
-	models.Handle().Order("updated_at DESC").Find(&builds)
-	for k := range builds {
-		builds[k].URI = cleanReponame(builds[k].URI)
+	builds, err := models.BuildList(ctx.Session().GetUint("userID"))
+	if err != nil {
+		emitError(ctx, "error fetching build-list", err)
+		return
 	}
 	ctx.MustRender("home.html", iris2.Map{"Page": "Home", "Builds": builds})
-}
-
-func beforeRender(ctx *iris2.Context, m iris2.Map) iris2.Map {
-	m["baseURI"] = config.Get().BaseURI
-	user, err := ctx.Session().GetUint("userID")
-	if err == nil {
-		m["userID"] = user
-	}
-	return m
 }
 
 func getLatestArtifact(ctx *iris2.Context) {
@@ -130,6 +117,7 @@ func getLatestArtifact(ctx *iris2.Context) {
 	f, err := os.Open(tgz.Name())
 	if err != nil {
 		emitError(ctx, "opening tempfile failed", err)
+		return
 	}
 	defer func() { f.Close(); os.Remove(tgz.Name()) }()
 

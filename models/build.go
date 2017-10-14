@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -29,6 +31,36 @@ func (b *Build) IsValid() error {
 		return errors.New("build with the provided URI already exists")
 	}
 	return nil
+}
+
+func BuildWithBranches(buildID int, userID uint) (*Build, error) {
+	item := Build{}
+	err := dbHandle.Preload("Branches", func(db *gorm.DB) *gorm.DB {
+		return db.Order("branches.Enabled DESC, branches.status_time DESC")
+	}).Where("((personal = 1 AND user_id = ?) OR personal = 0) AND id = ?", userID, buildID).First(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	item.URI = cleanReponame(item.URI)
+	for k := range item.Branches {
+		item.Branches[k].LastReference = item.Branches[k].LastReference[:7]
+	}
+	return &item, nil
+}
+
+func BuildList(userID uint, err error) ([]Build, error) {
+	if err != nil {
+		return nil, err
+	}
+	var builds []Build
+	err = dbHandle.Where("(personal = 1 AND user_id = ?) OR personal = 0", userID).Order("updated_at DESC").Find(&builds).Error
+	if err != nil {
+		return nil, err
+	}
+	for k := range builds {
+		builds[k].URI = cleanReponame(builds[k].URI)
+	}
+	return builds, nil
 }
 
 func (b *Build) UpdateStatus() {
@@ -63,4 +95,17 @@ func (b *Build) UpdateStatus() {
 	b.Status = status
 	b.StatusTime = time
 	dbHandle.Save(b)
+}
+
+func cleanReponame(remote string) string {
+	remote = strings.Replace(remote, ".git", "", -1)
+	if strings.Contains(remote, ":") && strings.Contains(remote, "@") {
+		rem := remote[strings.Index(remote, "@")+1:]
+		return strings.Replace(rem, ":", "/", 1)
+	}
+	u, err := url.Parse(remote)
+	if err != nil {
+		return remote
+	}
+	return u.Hostname() + u.Path
 }

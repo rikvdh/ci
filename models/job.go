@@ -74,6 +74,7 @@ func GetJobByID(jobID int, err error) (*Job, error) {
 
 	if item.ID > 0 {
 		item.SetStatusTime()
+		item.Build.URI = cleanReponame(item.Build.URI)
 		return &item, nil
 	}
 	return nil, fmt.Errorf("error finding job %d", jobID)

@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/go-iris2/iris2"
 	"github.com/rikvdh/ci/lib/indexer"
 	"github.com/rikvdh/ci/models"
@@ -44,20 +43,20 @@ func deleteBuildAction(ctx *iris2.Context) {
 }
 
 func getBuildAction(ctx *iris2.Context) {
-	item := models.Build{}
-	id, err := ctx.ParamInt("id")
+	b, err := ctx.ParamInt("id")
 	if err != nil {
-		ctx.Redirect(ctx.Referer())
+		emitError(ctx, "build is not found", err)
 		return
 	}
-	models.Handle().Preload("Branches", func(db *gorm.DB) *gorm.DB {
-		return db.Order("branches.Enabled DESC, branches.status_time DESC")
-	}).Where("id = ?", id).First(&item)
-
-	item.URI = cleanReponame(item.URI)
-
-	for k := range item.Branches {
-		item.Branches[k].LastReference = item.Branches[k].LastReference[:7]
+	u, err := ctx.Session().GetUint("userID")
+	if err != nil {
+		emitError(ctx, "user is not found", err)
+		return
+	}
+	item, err := models.BuildWithBranches(b, u)
+	if err != nil {
+		emitError(ctx, "build is not found", err)
+		return
 	}
 
 	ctx.MustRender("build.html", iris2.Map{"Page": "Build " + item.URI, "Build": item})
