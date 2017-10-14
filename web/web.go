@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/rikvdh/ci/internal/targzip"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/dustin/go-humanize"
 	"github.com/go-iris2/iris2"
 	"github.com/go-iris2/iris2/adaptors/sessions"
 	"github.com/go-iris2/iris2/adaptors/sessions/sessiondb/file"
 	"github.com/go-iris2/iris2/adaptors/view"
+
+	"github.com/rikvdh/ci/internal/targzip"
 	"github.com/rikvdh/ci/lib/auth"
 	"github.com/rikvdh/ci/lib/builder"
 	"github.com/rikvdh/ci/lib/config"

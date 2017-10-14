@@ -11,9 +11,22 @@ type User struct {
 	Username      string
 	Password      string
 	PasswordPlain string `gorm:"-"`
+	APIKey        string
 }
 
-func (u *User) BeforeSave(scope *gorm.Scope) (err error) {
+func ValidAPIKey(key string) bool {
+	if key == "" {
+		return false
+	}
+	item := User{}
+	dbHandle.Where("api_key = ?", key).First(&item)
+	if item.ID > 0 {
+		return true
+	}
+	return false
+}
+
+func (u *User) BeforeSave(scope *gorm.Scope) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.PasswordPlain), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -30,6 +43,7 @@ func (u *User) ValidPassword() bool {
 	return false
 }
 
+// IsValid validates the user
 func (u User) IsValid() bool {
 	return len(u.Username) > 0 && len(u.PasswordPlain) > 0
 }
